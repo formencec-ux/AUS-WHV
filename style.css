@@ -9,10 +9,9 @@
   --input-bg: #fff;
   --expense: #d63031;
   --income: #00843D;
-  --form-bg: #f8f9fa;
 }
 
-/* 黑暗模式顏色切換 */
+/* 黑暗模式覆蓋變數 */
 body.dark-mode {
   --bg: #121212;
   --card-bg: #1e1e1e;
@@ -20,58 +19,44 @@ body.dark-mode {
   --text-sub: #aaa;
   --border: #333;
   --input-bg: #2a2a2a;
-  --form-bg: #252525;
+  --primary: #2ecc71;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
-body { margin: 0; background-color: var(--bg); color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; background-color: var(--bg); color: var(--text-main); font-family: -apple-system, sans-serif; transition: 0.3s; }
 .app-container { max-width: 500px; margin: 0 auto; padding: 12px; }
 
-.main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-h1 { font-size: 1.2rem; color: var(--primary); margin: 0; }
-#dark-mode-toggle { background: none; border: none; font-size: 1.2rem; color: var(--primary); cursor: pointer; }
-
 .card { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-h2 { margin: 0 0 12px 0; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
 
 /* 總資產 */
 .asset-evaluation { background: rgba(0, 132, 61, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 12px; }
 .eval-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; text-align: center; }
-.eval-item small { font-size: 0.65rem; color: var(--primary); display: block; margin-bottom: 4px; }
+.eval-item small { font-size: 0.65rem; color: var(--primary); display: block; }
 .main-value { font-size: 0.85rem; font-weight: bold; }
 
-.exchange-rate-info { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; justify-content: center; }
-.rate-badge { background: var(--input-bg); padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; border: 1px solid var(--border); }
+.rate-badge { background: var(--input-bg); padding: 3px 10px; border-radius: 20px; font-size: 0.65rem; border: 1px solid var(--border); display: inline-block; margin: 2px; }
 
-.currency-details { border-top: 1px dashed var(--border); padding-top: 10px; }
-.detail-title { font-size: 0.75rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
 .currency-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
 
-/* 投資摘要 */
-.invest-grid { display: flex; gap: 8px; }
-.invest-box { flex: 1; background: var(--form-bg); padding: 10px; border-radius: 8px; text-align: center; font-size: 0.75rem; border: 1px solid var(--border); }
-.invest-box span { display: block; font-weight: bold; margin-top: 4px; }
-.mini-btn { padding: 4px 10px; font-size: 0.7rem; border-radius: 5px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); cursor: pointer; }
-
-/* 幣值轉換 - 修正對齊 */
-.exchange-form { background: var(--form-bg); padding: 12px; border-radius: 12px; }
-.exchange-input-row { display: flex; align-items: center; gap: 8px; height: 40px; } /* 固定高度確保對齊 */
-.styled-select { flex: 1; height: 100%; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text-main); font-size: 0.85rem; }
-.arrow-container { display: flex; align-items: center; justify-content: center; width: 20px; color: var(--text-sub); } /* 讓箭頭居中 */
-.btn-primary-small { height: 100%; padding: 0 15px; background: #34495e; color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: bold; }
-.preview-text { font-size: 0.75rem; color: var(--text-sub); margin-top: 8px; min-height: 1.2em; text-align: center; }
+/* 資產換匯對齊修正 */
+.exchange-form { background: rgba(0,0,0,0.03); padding: 12px; border-radius: 12px; }
+.exchange-input-row { display: flex; align-items: center; gap: 8px; height: 42px; } /* 固定行高 */
+.styled-select, .exchange-input-row input { 
+    height: 100%; flex: 1; border-radius: 8px; border: 1px solid var(--border); 
+    background: var(--input-bg); color: var(--text-main); padding: 0 10px; font-size: 0.85rem;
+}
+.arrow-container { 
+    display: flex; align-items: center; justify-content: center; 
+    width: 24px; color: var(--text-sub); height: 100%;
+}
+.btn-primary-small { height: 100%; padding: 0 15px; background: #34495e; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
 /* 進度條 */
-.progress-bar { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+.progress-bar { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; margin-top: 5px; }
 .progress-fill { height: 100%; background: var(--secondary); transition: 0.3s; }
 
-/* 按鈕與切換 */
-.work-btn-large { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; }
-.work-btn-sub { display: flex; gap: 5px; }
-.work-btn-sub button { flex: 1; padding: 8px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 0.75rem; }
-.btn-csv { background: var(--primary) !important; color: #fff !important; border: none !important; }
-
-.type-switcher { display: flex; gap: 4px; }
+/* 按鈕樣式 */
+.type-switcher { display: flex; gap: 4px; margin-bottom: 8px; }
 .type-btn { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 0.75rem; }
 .type-btn.active[data-type="income"] { background: var(--income); color: #fff; }
 .type-btn.active[data-type="expense"] { background: var(--expense); color: #fff; }
@@ -79,15 +64,17 @@ h2 { margin: 0 0 12px 0; font-size: 0.9rem; display: flex; align-items: center; 
 .type-btn.active[data-curr="TWD"], .type-btn.active[data-currency="TWD"] { background: #E60012; color: #fff; }
 .type-btn.active[data-curr="USD"], .type-btn.active[data-currency="USD"] { background: #3C3B6E; color: #fff; }
 
-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 0.9rem; margin-bottom: 8px; }
-.btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; margin-top: 10px; }
-.btn-reset { background: none; border: none; color: var(--text-sub); font-size: 0.65rem; width: 100%; margin-top: 10px; cursor: pointer; }
+.work-btn-large { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: bold; margin-bottom: 8px; }
+.btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; }
 
-/* Modal */
-.modal-content { background: var(--card-bg); color: var(--text-main); margin: 20% auto; padding: 20px; border-radius: 16px; width: 90%; }
-.stock-detail-card { background: var(--form-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 0.9rem; margin-bottom: 8px; width: 100%; }
 
 .transaction-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
-.delete-icon { color: var(--border); margin-left: 8px; }
 .income { color: var(--income); font-weight: bold; }
 .expense { color: var(--expense); font-weight: bold; }
+.preview-text { font-size: 0.75rem; text-align: center; margin-top: 8px; color: var(--text-sub); }
+
+/* Modal */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
+.modal-content { background: var(--card-bg); width: 90%; max-width: 400px; margin: 20% auto; padding: 20px; border-radius: 16px; color: var(--text-main); }
+.stock-detail-card { background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); }

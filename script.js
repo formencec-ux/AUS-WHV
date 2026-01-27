@@ -42,6 +42,11 @@ function setCurrency(currency) {
     document.querySelectorAll("#currency-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.currency === currency));
 }
 
+function setStockCurr(curr) {
+    document.getElementById("stock-curr").value = curr;
+    document.querySelectorAll("#stock-currency-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.curr === curr));
+}
+
 function updatePreview() {
     const fromCurr = document.getElementById("ex-from").value;
     const toCurr = document.getElementById("ex-to").value;
@@ -89,14 +94,59 @@ function addTransaction() {
     save(); updateUI();
 }
 
+function addInvestment() {
+    const name = document.getElementById("stock-name").value.trim();
+    const shares = parseFloat(document.getElementById("stock-shares").value);
+    const cost = parseFloat(document.getElementById("stock-cost").value);
+    const curr = document.getElementById("stock-curr").value;
+    if (!name || isNaN(shares) || isNaN(cost)) return;
+    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleDateString() });
+    state.balance[curr] -= cost;
+    document.getElementById("stock-name").value = "";
+    document.getElementById("stock-shares").value = "";
+    document.getElementById("stock-cost").value = "";
+    save(); updateUI();
+}
+
 function deleteTransaction(id) {
     const idx = state.transactions.findIndex(t => t.id === id);
     if (idx !== -1) {
         const t = state.transactions[idx];
         state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
         state.transactions.splice(idx, 1);
+    } else {
+        const invIdx = state.investments.findIndex(i => i.id === id);
+        if (invIdx !== -1) {
+            const i = state.investments[invIdx];
+            state.balance[i.curr] += i.cost;
+            state.investments.splice(invIdx, 1);
+        }
     }
     save(); updateUI();
+}
+
+function toggleStockModal() {
+    const modal = document.getElementById("stock-modal");
+    modal.style.display = modal.style.display === "block" ? "none" : "block";
+    if (modal.style.display === "block") renderStockDetails();
+}
+
+function renderStockDetails() {
+    const container = document.getElementById("stock-detail-list");
+    if (state.investments.length === 0) { container.innerHTML = "<p>尚未有投資</p>"; return; }
+    const stats = state.investments.reduce((acc, inv) => {
+        if (!acc[inv.name]) acc[inv.name] = { totalShares: 0, totalCost: 0, curr: inv.curr, logs: [] };
+        acc[inv.name].totalShares += inv.shares;
+        acc[inv.name].totalCost += inv.cost;
+        acc[inv.name].logs.push(`${inv.date}: ${inv.shares}股 / $${inv.cost.toFixed(2)}`);
+        return acc;
+    }, {});
+    let html = "";
+    for (const name in stats) {
+        const s = stats[name];
+        html += `<div class="stock-detail-card"><strong>${name} (${s.curr})</strong><br>持有: ${s.totalShares}股 | 均價: ${(s.totalCost/s.totalShares).toFixed(2)}<br><small>${s.logs.join('<br>')}</small></div>`;
+    }
+    container.innerHTML = html;
 }
 
 function addWorkDay() {
@@ -121,30 +171,35 @@ function exportCSV() {
     link.click();
 }
 
-function resetAssets() { if (confirm("確定重置嗎？")) { localStorage.clear(); location.reload(); } }
+function resetAssets() { if (confirm("確定重置嗎？這將清空此手機上的所有紀錄。")) { localStorage.clear(); location.reload(); } }
 
 function updateUI() {
+    const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
     const r = state.rates;
     document.getElementById("total-aud").innerText = `$ ${state.balance.AUD.toFixed(2)}`;
     document.getElementById("total-twd").innerText = `$ ${state.balance.TWD.toLocaleString()}`;
     document.getElementById("total-usd").innerText = `$ ${state.balance.USD.toFixed(2)}`;
-    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>`;
-    const totalInAUD = state.balance.AUD + (state.balance.TWD / r.AUD_TWD) + (state.balance.USD / r.AUD_USD);
-    const totalInTWD = (state.balance.AUD * r.AUD_TWD) + state.balance.TWD + (state.balance.USD * r.USD_TWD);
-    const totalInUSD = (state.balance.AUD * r.AUD_USD) + (state.balance.TWD / r.USD_TWD) + state.balance.USD;
+    document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
+    document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
+    document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
+    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
+    const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
+    const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
+    const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
     document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
     const wd = state.workDays;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
-    document.getElementById("days-2nd-text").innerText = `${wd} / 88`;
+    document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
-    state.transactions.slice(0, 10).forEach(t => {
+    const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
+    combined.forEach(t => {
         const li = document.createElement("li"); li.className = "transaction-item";
-        li.innerHTML = `<span>${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount.toFixed(2)} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
+        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
         list.appendChild(li);
     });
 }

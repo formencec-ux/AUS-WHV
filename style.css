@@ -1,85 +1,169 @@
-/* 基礎設定 */
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { 
-    margin: 0; 
-    background-color: #e2e4e7; /* 照片中的淺灰色背景 */
-    color: #1c1e21; 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    line-height: 1.5;
+:root { 
+
+  --primary: #00843D; 
+
+  --secondary: #FFCD00; 
+
+  --bg: #e2e4e7; /* 修正 6: 較深的背景色 */
+
+  --card-bg: #ffffff; 
+
+  --text-main: #1c1e21; 
+
+  --expense: #d63031; 
+
+  --income: #00843D; 
+
 }
+
+
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+body { margin: 0; background-color: var(--bg); color: var(--text-main); line-height: 1.5; }
+
 .app-container { max-width: 500px; margin: 0 auto; padding: 12px; }
 
-/* 標題設定 */
-.main-header { text-align: center; margin: 20px 0; }
-.main-header h1 { margin: 0; font-size: 1.5rem; color: #1c1e21; font-weight: 800; }
+.card { background: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 
-/* 卡片設定 */
-.card { 
-    background: #ffffff; 
-    border-radius: 20px; /* 大圓角設計 */
-    padding: 20px; 
-    margin-bottom: 15px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-}
-h2 { 
-    margin: 0 0 15px 0; 
-    font-size: 1rem; 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-}
 
-/* 總資產估算區域 */
-.asset-evaluation { background: #f0fdf4; border-radius: 15px; padding: 15px; margin-bottom: 15px; }
-.eval-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; text-align: center; }
-.eval-item small { font-size: 0.7rem; color: #16a34a; display: block; margin-bottom: 4px; }
-.main-value { font-size: 0.9rem; font-weight: 800; }
 
-.exchange-rate-info { display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; }
-.rate-badge { background: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; color: #666; border: 1px solid #eee; }
+.card-header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; margin-bottom: 12px; padding-bottom: 8px; }
 
-.detail-title { font-size: 0.75rem; color: #999; text-align: center; margin: 10px 0; }
-.currency-row { display: flex; justify-content: space-between; font-size: 0.95rem; margin-bottom: 5px; }
+h2 { margin: 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; border: none; }
 
-/* 投資摘要區塊 */
-.invest-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-.invest-box { background: #f8fafc; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #f1f5f9; }
-.invest-box small { font-size: 0.65rem; color: #64748b; display: block; }
-.invest-box span { font-size: 0.85rem; font-weight: 700; margin-top: 4px; display: block; }
+
+
+/* 總資產卡片 */
+
+.asset-evaluation { background: #e8f5e9; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+
+.eval-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; }
+
+.eval-item small { font-size: 0.65rem; color: #2e7d32; display: block; margin-bottom: 4px; }
+
+.main-value { font-size: 0.85rem; font-weight: 800; color: #1b5e20; }
+
+
+
+.exchange-rate-info { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; justify-content: center; }
+
+.rate-badge { background: #fff; padding: 4px 8px; border-radius: 20px; font-size: 0.65rem; border: 1px solid #eee; color: #666; }
+
+
+
+.currency-details { border-top: 1px dashed #ccc; padding-top: 12px; }
+
+.detail-title { font-size: 0.75rem; color: #888; text-align: center; margin-bottom: 8px; }
+
+.currency-row { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; }
+
+.currency-row .value { font-weight: 600; }
+
+
+
+/* 股票摘要 */
+
+.invest-grid { display: flex; gap: 8px; }
+
+.invest-box { flex: 1; background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.75rem; border: 1px solid #eee; }
+
+.invest-box span { display: block; font-weight: bold; color: #2c3e50; margin-top: 4px; }
+
+.mini-btn { padding: 4px 10px; font-size: 0.7rem; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
+
+
 
 /* 簽證進度 */
+
+.progress-container { margin-bottom: 16px; }
+
 .progress-row { margin-bottom: 12px; }
-.progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
-.progress-bar { height: 12px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
-.progress-fill { height: 100%; background: #22c55e; transition: width 0.3s; }
 
-/* 資產幣值轉換 - 修正對齊 */
-.exchange-form { background: #f8fafc; padding: 15px; border-radius: 15px; }
-.exchange-input-row { display: flex; align-items: center; gap: 10px; }
-.exchange-arrow { display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #1c1e21; }
-.styled-select, .exchange-input-row input { 
-    flex: 1; padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; font-size: 0.9rem; height: 44px;
-}
-.btn-exchange { background: #334155; color: white; border: none; padding: 0 20px; border-radius: 10px; font-weight: bold; height: 44px; cursor: pointer; }
+.progress-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px; }
 
-/* 按鈕與輸入框顏色 */
-.type-switcher { display: flex; gap: 8px; margin-bottom: 10px; }
-.type-btn { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+.progress-bar { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
 
-/* 照片中的特定按鈕顏色 */
-.type-btn.active[data-type="income"] { background: #16a34a; color: #fff; border: none; }
-.type-btn.active[data-type="expense"] { background: #fff; color: #2563eb; border: 1px solid #2563eb; }
-.type-btn.active[data-currency="AUD"], .type-btn.active[data-curr="AUD"] { background: #00008B; color: #fff; border: none; }
-.type-btn.active[data-currency="TWD"], .type-btn.active[data-curr="TWD"] { background: #fff; color: #3b82f6; border: 1px solid #3b82f6; }
-.type-btn.active[data-currency="USD"], .type-btn.active[data-curr="USD"] { background: #fff; color: #3b82f6; border: 1px solid #3b82f6; }
+.progress-fill { height: 100%; background: var(--secondary); transition: width 0.4s ease; }
 
-.work-btn-large { width: 100%; padding: 15px; background: #16a34a; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
-.btn-primary { width: 100%; padding: 15px; background: #334155; color: #fff; border: none; border-radius: 12px; font-weight: bold; font-size: 1rem; cursor: pointer; }
 
-input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; margin-bottom: 10px; }
+
+.work-action-group { display: flex; flex-direction: column; gap: 8px; }
+
+.work-btn-large { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+
+.work-btn-sub { display: flex; gap: 6px; }
+
+.work-btn-sub button { flex: 1; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
+
+.work-btn-sub .btn-csv { background: #00843D; color: #fff; border: none; }
+
+
+
+/* 幣值轉換修正：確保輸入框與按鈕高度一致 */
+
+.exchange-form { background: #f8f9fa; padding: 12px; border-radius: 10px; }
+
+.exchange-input-row { display: flex; align-items: stretch; gap: 8px; }
+
+.styled-select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; }
+
+.btn-primary-small { padding: 0 15px; background: #34495e; color: #fff; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+.no-wrap { white-space: nowrap; }
+
+
+
+/* 通用組件 */
+
+.type-switcher { display: flex; gap: 4px; }
+
+.type-btn { flex: 1; padding: 10px 5px; border: 1px solid #ddd; border-radius: 8px; background: #fff; font-size: 0.75rem; font-weight: bold; cursor: pointer; }
+
+.type-btn.active[data-type="income"] { background: var(--income); color: #fff; }
+
+.type-btn.active[data-type="expense"] { background: var(--expense); color: #fff; }
+
+.type-btn.active[data-currency="AUD"], .type-btn.active[data-curr="AUD"] { background: #00008B; color: #fff; }
+
+.type-btn.active[data-currency="TWD"], .type-btn.active[data-curr="TWD"] { background: #E60012; color: #fff; }
+
+.type-btn.active[data-currency="USD"], .type-btn.active[data-curr="USD"] { background: #3C3B6E; color: #fff; }
+
+
+
+.input-flex { display: flex; gap: 6px; }
+
 .mt-10 { margin-top: 10px; }
-.input-flex { display: flex; gap: 10px; }
 
-/* Modal 與清單樣式保持簡單 */
+input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; margin-bottom: 6px; }
+
+.btn-primary { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+
+.btn-reset { background: none; border: none; color: #ccc; font-size: 0.7rem; width: 100%; margin-top: 10px; cursor: pointer; }
+
+
+
+/* Modal 彈窗 */
+
 .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-.modal-content { background: #fff; margin: 20% auto; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; }
+
+.modal-content { background: #fff; margin: 15% auto; padding: 20px; border-radius: 16px; width: 90%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+
+.close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+
+.stock-detail-card { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); font-size: 0.8rem; }
+
+
+
+/* 紀錄清單 */
+
+.transaction-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f5f5f5; font-size: 0.85rem; }
+
+.delete-icon { color: #ddd; margin-left: 8px; cursor: pointer; }
+
+.income { color: var(--income); font-weight: bold; }
+
+.expense { color: var(--expense); font-weight: bold; }

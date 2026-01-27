@@ -5,20 +5,11 @@ let state = {
     workLogs: [],
     transactions: [],
     rates: { AUD_TWD: 21.0, AUD_USD: 0.65, USD_TWD: 32.2 },
-    darkMode: false
 };
 
 function init() {
     const saved = localStorage.getItem("aus_wh_state");
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    
-    // 關鍵：初始化時檢查並應用黑暗模式
-    if (state.darkMode) {
-        document.body.classList.add('dark-mode');
-        const btn = document.getElementById("dark-mode-toggle");
-        if(btn) btn.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-    
     updateUI();
     fetchRates();
     setInterval(fetchRates, 600000);
@@ -28,15 +19,6 @@ function save() {
     localStorage.setItem("aus_wh_state", JSON.stringify(state)); 
 }
 
-function toggleDarkMode() {
-    state.darkMode = !state.darkMode;
-    const isDark = document.body.classList.toggle('dark-mode');
-    const btn = document.getElementById("dark-mode-toggle");
-    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    save();
-}
-
-// 其餘收支與股票功能保持不變...
 async function fetchRates() {
     try {
         const res = await fetch("https://open.er-api.com/v6/latest/AUD");
@@ -178,7 +160,7 @@ function undoWorkDay() {
     if (state.workDays > 0) { state.workDays--; state.workLogs.shift(); save(); updateUI(); }
 }
 
-function showWorkLogs() { alert("紀錄:\n" + state.workLogs.join('\n')); }
+function showWorkLogs() { alert("打卡紀錄:\n" + state.workLogs.join('\n')); }
 
 function exportCSV() {
     let csv = "\ufeff日期,項目,金額,幣別\n";
@@ -189,7 +171,7 @@ function exportCSV() {
     link.click();
 }
 
-function resetAssets() { if (confirm("確定重置嗎？")) { localStorage.clear(); location.reload(); } }
+function resetAssets() { if (confirm("確定重置嗎？這將清空此手機上的所有紀錄。")) { localStorage.clear(); location.reload(); } }
 
 function updateUI() {
     const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
@@ -200,28 +182,24 @@ function updateUI() {
     document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
-    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>`;
-    
+    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
     const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
-    
     document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
-    
     const wd = state.workDays;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
     document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
-    
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
     const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
     combined.forEach(t => {
         const li = document.createElement("li"); li.className = "transaction-item";
-        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString()} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
+        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
         list.appendChild(li);
     });
 }

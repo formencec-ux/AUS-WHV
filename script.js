@@ -12,10 +12,11 @@ function init() {
     const saved = localStorage.getItem("aus_wh_state");
     if (saved) state = { ...state, ...JSON.parse(saved) };
     
-    // 初始化黑暗模式
+    // 關鍵：初始化時檢查並應用黑暗模式
     if (state.darkMode) {
         document.body.classList.add('dark-mode');
-        document.getElementById("dark-mode-toggle").innerHTML = '<i class="fas fa-sun"></i>';
+        const btn = document.getElementById("dark-mode-toggle");
+        if(btn) btn.innerHTML = '<i class="fas fa-sun"></i>';
     }
     
     updateUI();
@@ -29,12 +30,13 @@ function save() {
 
 function toggleDarkMode() {
     state.darkMode = !state.darkMode;
-    document.body.classList.toggle('dark-mode');
-    const icon = document.getElementById("dark-mode-toggle");
-    icon.innerHTML = state.darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    const isDark = document.body.classList.toggle('dark-mode');
+    const btn = document.getElementById("dark-mode-toggle");
+    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     save();
 }
 
+// 其餘收支與股票功能保持不變...
 async function fetchRates() {
     try {
         const res = await fetch("https://open.er-api.com/v6/latest/AUD");
@@ -75,7 +77,7 @@ function updatePreview() {
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
     else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
     const result = (amount * rate).toFixed(toCurr === "TWD" ? 0 : 2);
-    previewEl.innerText = `預計：${Number(result).toLocaleString()} ${toCurr}`;
+    previewEl.innerText = `預計轉換後：${Number(result).toLocaleString()} ${toCurr}`;
 }
 
 function executeExchange() {
@@ -83,7 +85,7 @@ function executeExchange() {
     const toCurr = document.getElementById("ex-to").value;
     const amount = parseFloat(document.getElementById("ex-amount").value);
     if (isNaN(amount) || amount <= 0 || state.balance[fromCurr] < amount || fromCurr === toCurr) {
-        alert("餘額不足或幣別相同"); return;
+        alert("請確認餘額足夠且幣別不同"); return;
     }
     let rate;
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
@@ -160,7 +162,7 @@ function renderStockDetails() {
     let html = "";
     for (const name in stats) {
         const s = stats[name];
-        html += `<div class="stock-detail-card"><strong>${name} (${s.curr})</strong><br>持有: ${s.totalShares} | 均價: ${(s.totalCost/s.totalShares).toFixed(2)}<br><small>${s.logs.join('<br>')}</small></div>`;
+        html += `<div class="stock-detail-card"><strong>${name} (${s.curr})</strong><br>持有: ${s.totalShares}股 | 均價: ${(s.totalCost/s.totalShares).toFixed(2)}<br><small>${s.logs.join('<br>')}</small></div>`;
     }
     container.innerHTML = html;
 }
@@ -198,7 +200,7 @@ function updateUI() {
     document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
-    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div>`;
+    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>`;
     
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);

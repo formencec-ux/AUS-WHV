@@ -10,20 +10,13 @@ let state = {
 function init() {
     const saved = localStorage.getItem("aus_wh_state");
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    if (!state.investments) state.investments = [];
     updateUI();
     fetchRates();
     setInterval(fetchRates, 600000);
 }
 
-// 🌟 修改後的雲端儲存邏輯
-async function save() { 
+function save() { 
     localStorage.setItem("aus_wh_state", JSON.stringify(state)); 
-    if (window.auth && window.auth.currentUser) {
-        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        const userRef = doc(window.db, "users", window.auth.currentUser.uid);
-        await setDoc(userRef, { state: state }, { merge: true });
-    }
 }
 
 async function fetchRates() {
@@ -178,7 +171,7 @@ function exportCSV() {
     link.click();
 }
 
-function resetAssets() { if (confirm("確定重置嗎？")) { localStorage.clear(); location.reload(); } }
+function resetAssets() { if (confirm("確定重置嗎？這將清空此手機上的所有紀錄。")) { localStorage.clear(); location.reload(); } }
 
 function updateUI() {
     const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
@@ -210,6 +203,4 @@ function updateUI() {
         list.appendChild(li);
     });
 }
-window.state = state;
-window.updateUI = updateUI;
 init();

@@ -9,7 +9,10 @@
   </head>
   <body>
     <div class="app-container">
-      <header><h1>🦘 澳洲打工度假管理</h1></header>
+      <header class="main-header">
+        <h1>🦘 澳洲打工度假管理</h1>
+        <button id="dark-mode-toggle" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+      </header>
 
       <main id="main-content">
         <section class="card shadow primary-card">
@@ -73,7 +76,7 @@
               <select id="ex-from" class="styled-select" onchange="updatePreview()">
                 <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
               </select>
-              <i class="fas fa-chevron-right"></i>
+              <div class="arrow-container"><i class="fas fa-chevron-right"></i></div>
               <select id="ex-to" class="styled-select" onchange="updatePreview()">
                 <option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option>
               </select>
@@ -82,7 +85,7 @@
               <input type="number" id="ex-amount" placeholder="換出金額" oninput="updatePreview()" style="margin-bottom: 0; flex: 2;">
               <button class="btn-primary-small no-wrap" onclick="executeExchange()" style="margin-top: 0; flex: 1;">換匯</button>
             </div>
-            <div id="ex-preview" style="font-size: 0.75rem; color: #666; margin-top: 8px; min-height: 1.2em;"></div>
+            <div id="ex-preview" class="preview-text"></div>
           </div>
         </section>
 
@@ -143,7 +146,6 @@
         </div>
       </div>
     </div>
-
     <script src="script.js"></script>
   </body>
 </html>

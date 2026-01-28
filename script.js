@@ -54,7 +54,7 @@ function updatePreview() {
     const amount = parseFloat(document.getElementById("ex-amount").value);
     const previewEl = document.getElementById("ex-preview");
     if (isNaN(amount) || amount <= 0) { previewEl.innerText = ""; return; }
-    if (fromCurr === name) { previewEl.innerText = "來源與目標幣別相同"; return; }
+    if (fromCurr === toCurr) { previewEl.innerText = "來源與目標幣別相同"; return; }
     let rate;
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
@@ -78,14 +78,13 @@ function executeExchange() {
     else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
     
     const resultAmount = amount * rate;
-    
-    // 更新餘額
+    const timestamp = Date.now();
+
     state.balance[fromCurr] -= amount;
     state.balance[toCurr] += resultAmount;
 
-    // 紀錄：轉出筆 (支出)
     state.transactions.unshift({ 
-        id: Date.now(), 
+        id: timestamp, 
         type: 'expense', 
         desc: `換匯轉出: ${fromCurr}→${toCurr}`, 
         amount: amount, 
@@ -93,9 +92,8 @@ function executeExchange() {
         date: new Date().toLocaleDateString() 
     });
     
-    // 紀錄：轉入筆 (收入) - 稍微延遲 ID 避免重複
     state.transactions.unshift({ 
-        id: Date.now() + 1, 
+        id: timestamp + 1, 
         type: 'income', 
         desc: `換匯轉入: ${fromCurr}→${toCurr}`, 
         amount: resultAmount, 
@@ -226,7 +224,7 @@ function updateUI() {
     const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
     combined.forEach(t => {
         const li = document.createElement("li"); li.className = "transaction-item";
-        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
+        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-} ${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
         list.appendChild(li);
     });
 }

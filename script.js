@@ -16,14 +16,8 @@ function init() {
     setInterval(fetchRates, 600000);
 }
 
-// 🌟 修改後的雲端儲存邏輯
-async function save() { 
+function save() { 
     localStorage.setItem("aus_wh_state", JSON.stringify(state)); 
-    if (window.auth && window.auth.currentUser) {
-        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        const userRef = doc(window.db, "users", window.auth.currentUser.uid);
-        await setDoc(userRef, { state: state }, { merge: true });
-    }
 }
 
 async function fetchRates() {
@@ -73,16 +67,42 @@ function executeExchange() {
     const fromCurr = document.getElementById("ex-from").value;
     const toCurr = document.getElementById("ex-to").value;
     const amount = parseFloat(document.getElementById("ex-amount").value);
+    
     if (isNaN(amount) || amount <= 0 || state.balance[fromCurr] < amount || fromCurr === toCurr) {
         alert("請確認餘額足夠且幣別不同"); return;
     }
+    
     let rate;
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
     else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
+    
+    const convertedAmount = amount * rate;
+    const timestamp = Date.now();
+
+    // 執行餘額扣除與增加
     state.balance[fromCurr] -= amount;
-    state.balance[toCurr] += amount * rate;
-    state.transactions.unshift({ id: Date.now(), type: 'expense', desc: `轉換: ${fromCurr}→${toCurr}`, amount: amount, currency: fromCurr, date: new Date().toLocaleDateString() });
+    state.balance[toCurr] += convertedAmount;
+
+    // 新增兩筆紀錄：一筆支出(換出)，一筆收入(換入)
+    state.transactions.unshift({ 
+        id: timestamp, 
+        type: 'expense', 
+        desc: `換匯轉出 (${fromCurr}→${toCurr})`, 
+        amount: amount, 
+        currency: fromCurr, 
+        date: new Date().toLocaleDateString() 
+    });
+    
+    state.transactions.unshift({ 
+        id: timestamp + 1, // 確保 ID 唯一
+        type: 'income', 
+        desc: `換匯轉入 (${fromCurr}→${toCurr})`, 
+        amount: convertedAmount, 
+        currency: toCurr, 
+        date: new Date().toLocaleDateString() 
+    });
+
     document.getElementById("ex-amount").value = "";
     document.getElementById("ex-preview").innerText = "";
     save(); updateUI();
@@ -190,20 +210,25 @@ function updateUI() {
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
     document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
+    
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
     const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
+    
     document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
+    
     const wd = state.workDays;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
     document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
+    
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
     const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
+    
     combined.forEach(t => {
         const li = document.createElement("li"); li.className = "transaction-item";
         li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;

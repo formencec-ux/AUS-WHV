@@ -11,18 +11,6 @@
     <div class="app-container">
       <header><h1>🦘 澳洲打工度假管理</h1></header>
 
-      <section id="auth-section" class="card shadow" style="text-align: center;">
-        <div id="user-logged-out">
-          <button id="login-btn" class="btn-primary" style="background: #4285F4; margin: 0; padding: 10px;">
-            <i class="fab fa-google"></i> Google 登入同步雲端
-          </button>
-        </div>
-        <div id="user-logged-in" style="display: none; font-size: 0.8rem;">
-          <span id="user-display-name"></span> (<span id="user-region-tag"></span>)
-          <button onclick="logout()" style="background:none; border:none; color:#aaa; cursor:pointer; text-decoration:underline; margin-left:10px;">登出</button>
-        </div>
-      </section>
-
       <main id="main-content">
         <section class="card shadow primary-card">
           <h2><i class="fas fa-coins"></i> 總資產估算 (現金 + 股票)</h2>
@@ -152,56 +140,6 @@
       </div>
     </div>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyDtrz_n4ec9HXFIgy45kepTG4Tot4Uuni4",
-        authDomain: "for-working-holiday.firebaseapp.com",
-        projectId: "for-working-holiday",
-        storageBucket: "for-working-holiday.firebasestorage.app",
-        messagingSenderId: "253275303946",
-        appId: "1:253275303946:web:d49779ba965eb276b3aff3",
-        measurementId: "G-L99659CCPK"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      const provider = new GoogleAuthProvider();
-
-      window.auth = auth;
-      window.db = db;
-      window.logout = () => signOut(auth);
-
-      onAuthStateChanged(auth, async (user) => {
-        const loginSect = document.getElementById('user-logged-out');
-        const userSect = document.getElementById('user-logged-in');
-        if (user) {
-          loginSect.style.display = 'none';
-          userSect.style.display = 'block';
-          
-          const userRef = doc(db, "users", user.uid);
-          const snap = await getDoc(userRef);
-          if (!snap.exists()) {
-            const nickname = prompt("請輸入暱稱：") || user.displayName;
-            const region = prompt("請輸入所在澳洲地區：") || "澳洲";
-            await setDoc(userRef, { nickname, region, state: window.state });
-          }
-          const data = (await getDoc(userRef)).data();
-          document.getElementById('user-display-name').innerText = data.nickname;
-          document.getElementById('user-region-tag').innerText = data.region;
-
-          onSnapshot(userRef, (d) => { if(d.exists()) { window.state = d.data().state; window.updateUI(); }});
-        } else {
-          loginSect.style.display = 'block';
-          userSect.style.display = 'none';
-        }
-      });
-      document.getElementById('login-btn').onclick = () => signInWithPopup(auth, provider);
-    </script>
     <script src="script.js"></script>
   </body>
 </html>

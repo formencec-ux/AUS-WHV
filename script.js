@@ -54,7 +54,7 @@ function updatePreview() {
     const amount = parseFloat(document.getElementById("ex-amount").value);
     const previewEl = document.getElementById("ex-preview");
     if (isNaN(amount) || amount <= 0) { previewEl.innerText = ""; return; }
-    if (fromCurr === toCurr) { previewEl.innerText = "來源與目標幣別相同"; return; }
+    if (fromCurr === name) { previewEl.innerText = "來源與目標幣別相同"; return; }
     let rate;
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
@@ -77,28 +77,28 @@ function executeExchange() {
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
     else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
     
-    const convertedAmount = amount * rate;
-    const timestamp = Date.now();
-
-    // 執行餘額扣除與增加
+    const resultAmount = amount * rate;
+    
+    // 更新餘額
     state.balance[fromCurr] -= amount;
-    state.balance[toCurr] += convertedAmount;
+    state.balance[toCurr] += resultAmount;
 
-    // 新增兩筆紀錄：一筆支出(換出)，一筆收入(換入)
+    // 紀錄：轉出筆 (支出)
     state.transactions.unshift({ 
-        id: timestamp, 
+        id: Date.now(), 
         type: 'expense', 
-        desc: `換匯轉出 (${fromCurr}→${toCurr})`, 
+        desc: `換匯轉出: ${fromCurr}→${toCurr}`, 
         amount: amount, 
         currency: fromCurr, 
         date: new Date().toLocaleDateString() 
     });
     
+    // 紀錄：轉入筆 (收入) - 稍微延遲 ID 避免重複
     state.transactions.unshift({ 
-        id: timestamp + 1, // 確保 ID 唯一
+        id: Date.now() + 1, 
         type: 'income', 
-        desc: `換匯轉入 (${fromCurr}→${toCurr})`, 
-        amount: convertedAmount, 
+        desc: `換匯轉入: ${fromCurr}→${toCurr}`, 
+        amount: resultAmount, 
         currency: toCurr, 
         date: new Date().toLocaleDateString() 
     });
@@ -210,25 +210,20 @@ function updateUI() {
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
     document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
-    
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
     const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
-    
     document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
-    
     const wd = state.workDays;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
     document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
-    
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
     const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
-    
     combined.forEach(t => {
         const li = document.createElement("li"); li.className = "transaction-item";
         li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;

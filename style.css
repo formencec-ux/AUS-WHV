@@ -49,10 +49,11 @@ h2 { margin: 0; font-size: 0.95rem; display: flex; align-items: center; gap: 8px
 .work-btn-sub button { flex: 1; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
 .work-btn-sub .btn-csv { background: #00843D; color: #fff; border: none; }
 
-/* 幣值轉換修正：確保圖示置中對齊 */
+/* 幣值轉換修正：確保文字與選單完美對齊 */
 .exchange-form { background: #f8f9fa; padding: 12px; border-radius: 10px; }
 .exchange-input-row { display: flex; align-items: center; gap: 8px; }
-.styled-select { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; }
+.styled-select { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; height: 41px; }
+.exchange-to-text { font-size: 0.8rem; color: #666; font-weight: bold; flex-shrink: 0; padding: 0 4px; }
 .btn-primary-small { padding: 0 15px; background: #34495e; color: #fff; border: none; border-radius: 6px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .no-wrap { white-space: nowrap; }
 

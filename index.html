@@ -74,9 +74,9 @@
               <i class="fas fa-chevron-right"></i>
               <select id="ex-to" class="styled-select" onchange="updatePreview()"><option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option></select>
             </div>
-            <div class="exchange-input-row mt-10" style="align-items: stretch;">
+            <div class="exchange-input-row mt-10">
               <input type="number" id="ex-amount" placeholder="換出金額" oninput="updatePreview()" style="margin-bottom: 0; flex: 2;">
-              <button class="btn-primary-small no-wrap" onclick="executeExchange()" style="margin-top: 0; flex: 1;">換匯</button>
+              <button class="btn-primary-small no-wrap" onclick="executeExchange()" style="margin-top: 0; flex: 1; height: 41px;">換匯</button>
             </div>
             <div id="ex-preview" style="font-size: 0.75rem; color: #666; margin-top: 8px; min-height: 1.2em;"></div>
           </div>
@@ -139,7 +139,6 @@
         </div>
       </div>
     </div>
-
     <script src="script.js"></script>
   </body>
 </html>

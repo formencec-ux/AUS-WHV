@@ -91,7 +91,7 @@
               <select id="ex-from" class="styled-select" onchange="updatePreview()">
                 <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
               </select>
-              <i class="fas fa-chevron-right"></i>
+              <i class="fas fa-chevron-right" style="align-self: center; color: #999;"></i>
               <select id="ex-to" class="styled-select" onchange="updatePreview()">
                 <option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option>
               </select>
@@ -131,7 +131,9 @@
             </div>
             <input type="hidden" id="trans-type" value="expense" />
             
-            <input type="date" id="trans-date" class="mt-10 styled-date-input">
+            <div class="mt-10 full-width-input">
+              <input type="date" id="trans-date" class="styled-date-input">
+            </div>
 
             <div class="input-flex mt-10">
               <input type="number" id="trans-amount" placeholder="金額" style="flex: 1;">

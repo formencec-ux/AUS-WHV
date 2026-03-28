@@ -5,12 +5,23 @@ let state = {
     workLogs: [],
     transactions: [],
     rates: { AUD_TWD: 21.0, AUD_USD: 0.65, USD_TWD: 32.2 },
+    weeklyHours: 0,
+    weeklyWage: 0
 };
 
 function init() {
     const saved = localStorage.getItem("aus_wh_state");
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    if (!state.investments) state.investments = [];
+    
+    // 設定預設時間為現在
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('trans-date').value = now.toISOString().slice(0, 16);
+    
+    // 回填時薪時數
+    document.getElementById("work-hours").value = state.weeklyHours || "";
+    document.getElementById("work-wage").value = state.weeklyWage || "";
+
     updateUI();
     fetchRates();
     setInterval(fetchRates, 600000);
@@ -48,13 +59,32 @@ function setStockCurr(curr) {
     document.querySelectorAll("#stock-currency-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.curr === curr));
 }
 
+// 薪資計算
+function calculateWeeklySalary() {
+    const hours = parseFloat(document.getElementById("work-hours").value) || 0;
+    const wage = parseFloat(document.getElementById("work-wage").value) || 0;
+    state.weeklyHours = hours;
+    state.weeklyWage = wage;
+    document.getElementById("weekly-salary-display").innerText = (hours * wage).toFixed(2);
+    save();
+}
+
+function resetWeeklySalary() {
+    state.weeklyHours = 0;
+    state.weeklyWage = 0;
+    document.getElementById("work-hours").value = "";
+    document.getElementById("work-wage").value = "";
+    document.getElementById("weekly-salary-display").innerText = "0.00";
+    save();
+}
+
 function updatePreview() {
     const fromCurr = document.getElementById("ex-from").value;
     const toCurr = document.getElementById("ex-to").value;
     const amount = parseFloat(document.getElementById("ex-amount").value);
     const previewEl = document.getElementById("ex-preview");
     if (isNaN(amount) || amount <= 0) { previewEl.innerText = ""; return; }
-    if (fromCurr === ttoCurr) { previewEl.innerText = "來源與目標幣別相同"; return; }
+    if (fromCurr === toCurr) { previewEl.innerText = "來源與目標幣別相同"; return; }
     let rate;
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
@@ -74,31 +104,16 @@ function executeExchange() {
     if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
     else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
     else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
-    
-    const convertedAmount = amount * rate;
-    const now = new Date().toLocaleDateString();
-
     state.balance[fromCurr] -= amount;
-    state.balance[toCurr] += convertedAmount;
-
-    // 紀錄：支出(舊幣別) 與 收入(新幣別)
+    state.balance[toCurr] += amount * rate;
     state.transactions.unshift({ 
         id: Date.now(), 
         type: 'expense', 
-        desc: `轉換(出): ${fromCurr}→${toCurr}`, 
+        desc: `轉換: ${fromCurr}→${toCurr}`, 
         amount: amount, 
         currency: fromCurr, 
-        date: now 
+        date: new Date().toLocaleString() 
     });
-    state.transactions.unshift({ 
-        id: Date.now() + 1, // 確保 ID 不同
-        type: 'income', 
-        desc: `轉換(入): ${fromCurr}→${toCurr}`, 
-        amount: convertedAmount, 
-        currency: toCurr, 
-        date: now 
-    });
-
     document.getElementById("ex-amount").value = "";
     document.getElementById("ex-preview").innerText = "";
     save(); updateUI();
@@ -109,8 +124,11 @@ function addTransaction() {
     const desc = document.getElementById("trans-desc").value.trim();
     const amount = parseFloat(document.getElementById("trans-amount").value);
     const currency = document.getElementById("trans-currency").value;
+    const dateInput = document.getElementById("trans-date").value;
+    const dateStr = dateInput ? new Date(dateInput).toLocaleString() : new Date().toLocaleString();
+
     if (!desc || isNaN(amount)) return;
-    state.transactions.unshift({ id: Date.now(), type, desc, amount, currency, date: new Date().toLocaleDateString() });
+    state.transactions.unshift({ id: Date.now(), type, desc, amount, currency, date: dateStr });
     state.balance[currency] += type === "income" ? amount : -amount;
     document.getElementById("trans-desc").value = "";
     document.getElementById("trans-amount").value = "";
@@ -123,7 +141,7 @@ function addInvestment() {
     const cost = parseFloat(document.getElementById("stock-cost").value);
     const curr = document.getElementById("stock-curr").value;
     if (!name || isNaN(shares) || isNaN(cost)) return;
-    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleDateString() });
+    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleString() });
     state.balance[curr] -= cost;
     document.getElementById("stock-name").value = "";
     document.getElementById("stock-shares").value = "";
@@ -132,6 +150,7 @@ function addInvestment() {
 }
 
 function deleteTransaction(id) {
+    if(!confirm("確定刪除嗎？")) return;
     const idx = state.transactions.findIndex(t => t.id === id);
     if (idx !== -1) {
         const t = state.transactions[idx];
@@ -146,12 +165,42 @@ function deleteTransaction(id) {
         }
     }
     save(); updateUI();
+    if(document.getElementById("history-modal").style.display === "block") renderHistoryDetails();
+}
+
+// 編輯功能
+function editTransaction(id) {
+    const t = state.transactions.find(item => item.id === id);
+    if(!t) return;
+
+    const newDesc = prompt("修改項目名稱:", t.desc);
+    const newAmount = parseFloat(prompt("修改金額:", t.amount));
+    const newDate = prompt("修改日期時間 (格式 YYYY/MM/DD HH:MM):", t.date);
+
+    if (newDesc !== null && !isNaN(newAmount) && newDate !== null) {
+        // 先回退舊金額
+        state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
+        // 更新數據
+        t.desc = newDesc;
+        t.amount = newAmount;
+        t.date = newDate;
+        // 加上新金額
+        state.balance[t.currency] += t.type === "income" ? t.amount : -t.amount;
+        
+        save(); updateUI(); renderHistoryDetails();
+    }
 }
 
 function toggleStockModal() {
     const modal = document.getElementById("stock-modal");
     modal.style.display = modal.style.display === "block" ? "none" : "block";
     if (modal.style.display === "block") renderStockDetails();
+}
+
+function toggleHistoryModal() {
+    const modal = document.getElementById("history-modal");
+    modal.style.display = modal.style.display === "block" ? "none" : "block";
+    if (modal.style.display === "block") renderHistoryDetails();
 }
 
 function renderStockDetails() {
@@ -170,6 +219,26 @@ function renderStockDetails() {
         html += `<div class="stock-detail-card"><strong>${name} (${s.curr})</strong><br>持有: ${s.totalShares}股 | 均價: ${(s.totalCost/s.totalShares).toFixed(2)}<br><small>${s.logs.join('<br>')}</small></div>`;
     }
     container.innerHTML = html;
+}
+
+function renderHistoryDetails() {
+    const container = document.getElementById("full-history-list");
+    container.innerHTML = "";
+    state.transactions.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "history-edit-item";
+        div.innerHTML = `
+            <div class="info">
+                <small>${t.date}</small><br>
+                <b>${t.desc}</b>: <span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount} ${t.currency}</span>
+            </div>
+            <div class="actions">
+                <button onclick="editTransaction(${t.id})">修改</button>
+                <button onclick="deleteTransaction(${t.id})" style="color:red">刪除</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
 }
 
 function addWorkDay() {
@@ -194,7 +263,7 @@ function exportCSV() {
     link.click();
 }
 
-function resetAssets() { if (confirm("確定重置嗎？")) { localStorage.clear(); location.reload(); } }
+function resetAssets() { if (confirm("確定重置嗎？這將清空此手機上的所有紀錄。")) { localStorage.clear(); location.reload(); } }
 
 function updateUI() {
     const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
@@ -206,17 +275,24 @@ function updateUI() {
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
     document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
+    
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
     const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
+    
     document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
+    
     const wd = state.workDays;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
     document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
+
+    // 更新薪資顯示
+    document.getElementById("weekly-salary-display").innerText = (state.weeklyHours * state.weeklyWage).toFixed(2);
+
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
     const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
@@ -226,6 +302,4 @@ function updateUI() {
         list.appendChild(li);
     });
 }
-window.state = state;
-window.updateUI = updateUI;
 init();

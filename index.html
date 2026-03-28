@@ -10,10 +10,11 @@
   <body>
     <div class="app-container">
       <header>
-        <h1>🦘 澳打記帳與投資管理</h1>
+        <h1 class="main-title">🦘 澳打記帳與投資管理</h1>
         <div class="author-info">
           <p>製作人：Rei Liao</p>
-          <p>BUG回報與新增功能建議聯絡方式：Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
+          <p>此軟體為自行製作提供給澳打夥伴使用</p>
+          <p>如遭人販售使用請勿受騙不如斗內我><</p>
         </div>
       </header>
 
@@ -29,7 +30,7 @@
           </div>
           <div class="exchange-rate-info" id="exchange-info"></div>
           <div class="currency-details">
-            <div class="detail-title">目前手邊現鈔</div>
+            <div class="detail-title">目前資產</div>
             <div class="currency-list">
               <div class="currency-row"><span class="label">AUD</span><span class="value" id="total-aud">$ 0.00</span></div>
               <div class="currency-row"><span class="label">TWD</span><span class="value" id="total-twd">$ 0</span></div>
@@ -69,7 +70,7 @@
               <input type="number" id="work-wage" placeholder="時薪" oninput="calculateWeeklySalary()">
             </div>
             <div class="salary-result">
-              <span>本週薪資為：<b id="weekly-salary-display">0.00</b></span>
+              <span class="salary-text">本次紀錄薪資為：<b id="weekly-salary-display">0.00</b></span>
               <button class="mini-btn" onclick="resetWeeklySalary()">重置</button>
             </div>
           </div>
@@ -79,7 +80,6 @@
             <div class="work-btn-sub">
               <button onclick="undoWorkDay()">按錯ㄌ</button>
               <button onclick="showWorkLogs()">紀錄</button>
-              <button onclick="exportCSV()" class="btn-csv"><i class="fas fa-file-csv"></i></button>
             </div>
           </div>
         </section>
@@ -131,7 +131,7 @@
             </div>
             <input type="hidden" id="trans-type" value="expense" />
             
-            <input type="datetime-local" id="trans-date" class="mt-10">
+            <input type="date" id="trans-date" class="mt-10 styled-date-input">
 
             <div class="input-flex mt-10">
               <input type="number" id="trans-amount" placeholder="金額" style="flex: 1;">
@@ -158,6 +158,11 @@
           </div>
           <ul id="transaction-list" class="list-unstyled"></ul>
         </section>
+
+        <footer class="footer-contact">
+          <p>BUG回報與新增功能建議聯絡方式：</p>
+          <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
+        </footer>
       </main>
 
       <div id="stock-modal" class="modal">

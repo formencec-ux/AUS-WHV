@@ -11,7 +11,10 @@ let state = {
 
 function init() {
     const saved = localStorage.getItem("aus_wh_state");
-    if (saved) state = { ...state, ...JSON.parse(saved) };
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        state = { ...state, ...parsed };
+    }
     
     // 設定預設日期為今天
     const now = new Date();
@@ -69,15 +72,18 @@ function calculateWeeklySalary() {
 }
 
 function resetWeeklySalary() {
-    if (confirm("確定要重置薪資計算時數嗎？")) {
-        if (confirm("第二次確認：所有當週輸入的時數與時薪將會歸零喔！")) {
-            state.weeklyHours = 0;
-            state.weeklyWage = 0;
-            document.getElementById("work-hours").value = "";
-            document.getElementById("work-wage").value = "";
-            document.getElementById("weekly-salary-display").innerText = "0.00";
-            save();
-        }
+    if (confirm("⚠️ 確定要重置薪資計算時數嗎？")) {
+        setTimeout(() => {
+            if (confirm("🔥 第二次確認：所有當週輸入的時數與時薪將會歸零喔！")) {
+                state.weeklyHours = 0;
+                state.weeklyWage = 0;
+                document.getElementById("work-hours").value = "";
+                document.getElementById("work-wage").value = "";
+                document.getElementById("weekly-salary-display").innerText = "0.00";
+                save();
+                alert("已成功重置！");
+            }
+        }, 100);
     }
 }
 
@@ -153,25 +159,27 @@ function addInvestment() {
 }
 
 function deleteTransaction(id) {
-    if(!confirm("確定要刪除這筆紀錄嗎？")) return;
-    if(!confirm("第二次確認：刪除後資產餘額會自動回推，確定執行？")) {
-        return;
+    if (confirm("確定要刪除這筆紀錄嗎？")) {
+        setTimeout(() => {
+            if (confirm("再次確認：刪除後資產餘額會自動回推，確定執行？")) {
+                const idx = state.transactions.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    const t = state.transactions[idx];
+                    state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
+                    state.transactions.splice(idx, 1);
+                } else {
+                    const invIdx = state.investments.findIndex(i => i.id === id);
+                    if (invIdx !== -1) {
+                        const i = state.investments[invIdx];
+                        state.balance[i.curr] += i.cost;
+                        state.investments.splice(invIdx, 1);
+                    }
+                }
+                save(); updateUI();
+                if(document.getElementById("history-modal").style.display === "block") renderHistoryDetails();
+            }
+        }, 100);
     }
-    const idx = state.transactions.findIndex(t => t.id === id);
-    if (idx !== -1) {
-        const t = state.transactions[idx];
-        state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
-        state.transactions.splice(idx, 1);
-    } else {
-        const invIdx = state.investments.findIndex(i => i.id === id);
-        if (invIdx !== -1) {
-            const i = state.investments[invIdx];
-            state.balance[i.curr] += i.cost;
-            state.investments.splice(invIdx, 1);
-        }
-    }
-    save(); updateUI();
-    if(document.getElementById("history-modal").style.display === "block") renderHistoryDetails();
 }
 
 function editTransaction(id) {
@@ -188,7 +196,6 @@ function editTransaction(id) {
         t.amount = newAmount;
         t.date = newDate;
         state.balance[t.currency] += t.type === "income" ? t.amount : -t.amount;
-        
         save(); updateUI(); renderHistoryDetails();
     }
 }
@@ -244,38 +251,58 @@ function renderHistoryDetails() {
 }
 
 function addWorkDay() {
+    state.workDays = (state.workDays || 0) + 1;
     const now = new Date();
-    state.workDays++;
-    state.workLogs.unshift(`${now.toLocaleDateString()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`);
-    save(); updateUI();
+    const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    state.workLogs.unshift(timeStr);
+    save(); 
+    updateUI();
 }
 
 function undoWorkDay() {
-    if (state.workDays > 0) { state.workDays--; state.workLogs.shift(); save(); updateUI(); }
+    if (state.workDays > 0) { 
+        state.workDays--; 
+        state.workLogs.shift(); 
+        save(); 
+        updateUI(); 
+    }
 }
 
 function showWorkLogs() { alert("打卡紀錄:\n" + state.workLogs.join('\n')); }
 
 function resetAssets() { 
-    if (confirm("⚠️ 警告：確定要清空所有資料嗎？")) { 
-        if (confirm("🔥 最後確認：此操作無法復原，所有資產與紀錄將消失！")) {
-            localStorage.clear(); 
-            location.reload(); 
-        }
+    if (confirm("⚠️ 嚴重警告：確定要清空所有資料嗎？")) { 
+        setTimeout(() => {
+            if (confirm("🚨 最後警告：此操作無法復原，所有資產與紀錄將消失！")) {
+                localStorage.removeItem("aus_wh_state");
+                alert("資料已完全清除。");
+                location.reload(); 
+            }
+        }, 100);
     } 
 }
 
 function updateUI() {
     const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
     const r = state.rates;
+    
+    // 餘額顯示
     document.getElementById("total-aud").innerText = `$ ${state.balance.AUD.toFixed(2)}`;
     document.getElementById("total-twd").innerText = `$ ${state.balance.TWD.toLocaleString()}`;
     document.getElementById("total-usd").innerText = `$ ${state.balance.USD.toFixed(2)}`;
+    
+    // 投資顯示
     document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
     document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
-    document.getElementById("exchange-info").innerHTML = `<div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div><div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div><div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
     
+    // 匯率卡片
+    document.getElementById("exchange-info").innerHTML = `
+        <div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>
+        <div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div>
+        <div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
+    
+    // 總資產換算 (加上投資額)
     const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
     const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
     const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
@@ -284,20 +311,33 @@ function updateUI() {
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
     
-    const wd = state.workDays;
+    // 簽證進度
+    const wd = state.workDays || 0;
     document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
     document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
 
+    // 薪資同步
     document.getElementById("weekly-salary-display").innerText = (state.weeklyHours * state.weeklyWage).toFixed(2);
 
+    // 交易清單
     const list = document.getElementById("transaction-list");
     list.innerHTML = "";
-    const combined = [...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))].sort((a,b)=>b.id-a.id).slice(0,10);
+    const combined = [
+        ...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), 
+        ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))
+    ].sort((a,b)=>b.id-a.id).slice(0,10);
+    
     combined.forEach(t => {
-        const li = document.createElement("li"); li.className = "transaction-item";
-        li.innerHTML = `<span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span><div><span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span><i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i></div>`;
+        const li = document.createElement("li"); 
+        li.className = "transaction-item";
+        li.innerHTML = `
+            <span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span>
+            <div>
+                <span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span>
+                <i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i>
+            </div>`;
         list.appendChild(li);
     });
 }

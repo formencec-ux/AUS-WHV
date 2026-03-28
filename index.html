@@ -3,13 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>澳洲打工度假資產管理</title>
+    <title>澳打記帳與投資管理</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   </head>
   <body>
     <div class="app-container">
-      <header><h1>🦘 澳洲打工度假管理</h1></header>
+      <header>
+        <h1>🦘 澳打記帳與投資管理</h1>
+        <div class="author-info">
+          <p>製作人：Rei Liao</p>
+          <p>BUG回報與新增功能建議聯絡方式：Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
+        </div>
+      </header>
 
       <main id="main-content">
         <section class="card shadow primary-card">
@@ -23,7 +29,7 @@
           </div>
           <div class="exchange-rate-info" id="exchange-info"></div>
           <div class="currency-details">
-            <div class="detail-title">可運用資產</div>
+            <div class="detail-title">目前手邊現鈔</div>
             <div class="currency-list">
               <div class="currency-row"><span class="label">AUD</span><span class="value" id="total-aud">$ 0.00</span></div>
               <div class="currency-row"><span class="label">TWD</span><span class="value" id="total-twd">$ 0</span></div>
@@ -45,7 +51,7 @@
         </section>
 
         <section class="card shadow">
-          <h2><i class="fas fa-calendar-check"></i> 簽證天數進度</h2>
+          <h2><i class="fas fa-calendar-check"></i> 簽證天數與薪資計算</h2>
           <div class="progress-container">
             <div class="progress-row">
               <div class="progress-info"><span>二簽 (88天)</span><b id="days-2nd-text">0 / 88</b></div>
@@ -56,6 +62,18 @@
               <div class="progress-bar"><div class="progress-fill" id="progress-3rd"></div></div>
             </div>
           </div>
+          
+          <div class="salary-calc-area">
+            <div class="input-flex">
+              <input type="number" id="work-hours" placeholder="請輸入時數" oninput="calculateWeeklySalary()">
+              <input type="number" id="work-wage" placeholder="時薪" oninput="calculateWeeklySalary()">
+            </div>
+            <div class="salary-result">
+              <span>本週薪資為：<b id="weekly-salary-display">0.00</b></span>
+              <button class="mini-btn" onclick="resetWeeklySalary()">重置</button>
+            </div>
+          </div>
+
           <div class="work-action-group">
             <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
             <div class="work-btn-sub">
@@ -70,11 +88,15 @@
           <h2><i class="fas fa-exchange-alt"></i> 資產幣值轉換</h2>
           <div class="exchange-form">
             <div class="exchange-input-row">
-              <select id="ex-from" class="styled-select" onchange="updatePreview()"><option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option></select>
-              <span class="exchange-to-text">to</span>
-              <select id="ex-to" class="styled-select" onchange="updatePreview()"><option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option></select>
+              <select id="ex-from" class="styled-select" onchange="updatePreview()">
+                <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
+              </select>
+              <i class="fas fa-chevron-right"></i>
+              <select id="ex-to" class="styled-select" onchange="updatePreview()">
+                <option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option>
+              </select>
             </div>
-            <div class="exchange-input-row mt-10" style="align-items: stretch;">
+            <div class="exchange-input-row mt-10">
               <input type="number" id="ex-amount" placeholder="換出金額" oninput="updatePreview()" style="margin-bottom: 0; flex: 2;">
               <button class="btn-primary-small no-wrap" onclick="executeExchange()" style="margin-top: 0; flex: 1;">換匯</button>
             </div>
@@ -104,14 +126,18 @@
           <h2><i class="fas fa-edit"></i> 新增收支紀錄</h2>
           <div class="input-form">
             <div class="type-switcher" id="type-container">
-              <button class="type-btn" data-type="expense" onclick="setType('expense')">支出</button>
-              <button class="type-btn active" data-type="income" onclick="setType('income')">收入</button>
+              <button class="type-btn active" data-type="expense" onclick="setType('expense')">支出</button>
+              <button class="type-btn" data-type="income" onclick="setType('income')">收入</button>
             </div>
-            <input type="hidden" id="trans-type" value="income" />
+            <input type="hidden" id="trans-type" value="expense" />
+            
+            <input type="datetime-local" id="trans-date" class="mt-10">
+
             <div class="input-flex mt-10">
-              <input type="text" id="trans-desc" placeholder="項目" style="flex: 2;">
               <input type="number" id="trans-amount" placeholder="金額" style="flex: 1;">
+              <input type="text" id="trans-desc" placeholder="項目" style="flex: 2;">
             </div>
+
             <div class="type-switcher" id="currency-container">
               <button class="type-btn active" data-currency="AUD" onclick="setCurrency('AUD')">AUD</button>
               <button class="type-btn" data-currency="TWD" onclick="setCurrency('TWD')">TWD</button>
@@ -120,11 +146,16 @@
             <input type="hidden" id="trans-currency" value="AUD" />
             <button class="btn-primary" onclick="addTransaction()">確認送出</button>
           </div>
-          <button class="btn-reset" onclick="resetAssets()">重置所有資料</button>
         </section>
 
         <section class="card shadow">
-          <h2><i class="fas fa-history"></i> 最近紀錄</h2>
+          <div class="card-header-flex" style="border:none; margin:0;">
+            <h2 style="border:none;"><i class="fas fa-history"></i> 最近紀錄</h2>
+            <div>
+                <button class="mini-btn" onclick="toggleHistoryModal()">展開</button>
+                <button class="btn-reset-inline" onclick="resetAssets()">重置所有資料</button>
+            </div>
+          </div>
           <ul id="transaction-list" class="list-unstyled"></ul>
         </section>
       </main>
@@ -138,7 +169,18 @@
           <div id="stock-detail-list"></div>
         </div>
       </div>
+
+      <div id="history-modal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+          <div class="modal-header">
+            <h3>所有紀錄編輯</h3>
+            <span class="close" onclick="toggleHistoryModal()">&times;</span>
+          </div>
+          <div id="full-history-list"></div>
+        </div>
+      </div>
     </div>
+
     <script src="script.js"></script>
   </body>
 </html>

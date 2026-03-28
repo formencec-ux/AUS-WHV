@@ -13,10 +13,9 @@ function init() {
     const saved = localStorage.getItem("aus_wh_state");
     if (saved) state = { ...state, ...JSON.parse(saved) };
     
-    // 設定預設時間為現在
+    // 設定預設日期為今天
     const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('trans-date').value = now.toISOString().slice(0, 16);
+    document.getElementById('trans-date').value = now.toISOString().split('T')[0];
     
     // 回填時薪時數
     document.getElementById("work-hours").value = state.weeklyHours || "";
@@ -70,12 +69,16 @@ function calculateWeeklySalary() {
 }
 
 function resetWeeklySalary() {
-    state.weeklyHours = 0;
-    state.weeklyWage = 0;
-    document.getElementById("work-hours").value = "";
-    document.getElementById("work-wage").value = "";
-    document.getElementById("weekly-salary-display").innerText = "0.00";
-    save();
+    if (confirm("確定要重置薪資計算時數嗎？")) {
+        if (confirm("第二次確認：所有當週輸入的時數與時薪將會歸零喔！")) {
+            state.weeklyHours = 0;
+            state.weeklyWage = 0;
+            document.getElementById("work-hours").value = "";
+            document.getElementById("work-wage").value = "";
+            document.getElementById("weekly-salary-display").innerText = "0.00";
+            save();
+        }
+    }
 }
 
 function updatePreview() {
@@ -112,7 +115,7 @@ function executeExchange() {
         desc: `轉換: ${fromCurr}→${toCurr}`, 
         amount: amount, 
         currency: fromCurr, 
-        date: new Date().toLocaleString() 
+        date: new Date().toLocaleDateString() 
     });
     document.getElementById("ex-amount").value = "";
     document.getElementById("ex-preview").innerText = "";
@@ -125,7 +128,7 @@ function addTransaction() {
     const amount = parseFloat(document.getElementById("trans-amount").value);
     const currency = document.getElementById("trans-currency").value;
     const dateInput = document.getElementById("trans-date").value;
-    const dateStr = dateInput ? new Date(dateInput).toLocaleString() : new Date().toLocaleString();
+    const dateStr = dateInput ? new Date(dateInput).toLocaleDateString() : new Date().toLocaleDateString();
 
     if (!desc || isNaN(amount)) return;
     state.transactions.unshift({ id: Date.now(), type, desc, amount, currency, date: dateStr });
@@ -141,7 +144,7 @@ function addInvestment() {
     const cost = parseFloat(document.getElementById("stock-cost").value);
     const curr = document.getElementById("stock-curr").value;
     if (!name || isNaN(shares) || isNaN(cost)) return;
-    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleString() });
+    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleDateString() });
     state.balance[curr] -= cost;
     document.getElementById("stock-name").value = "";
     document.getElementById("stock-shares").value = "";
@@ -150,7 +153,10 @@ function addInvestment() {
 }
 
 function deleteTransaction(id) {
-    if(!confirm("確定刪除嗎？")) return;
+    if(!confirm("確定要刪除這筆紀錄嗎？")) return;
+    if(!confirm("第二次確認：刪除後資產餘額會自動回推，確定執行？")) {
+        return;
+    }
     const idx = state.transactions.findIndex(t => t.id === id);
     if (idx !== -1) {
         const t = state.transactions[idx];
@@ -168,23 +174,19 @@ function deleteTransaction(id) {
     if(document.getElementById("history-modal").style.display === "block") renderHistoryDetails();
 }
 
-// 編輯功能
 function editTransaction(id) {
     const t = state.transactions.find(item => item.id === id);
     if(!t) return;
 
     const newDesc = prompt("修改項目名稱:", t.desc);
     const newAmount = parseFloat(prompt("修改金額:", t.amount));
-    const newDate = prompt("修改日期時間 (格式 YYYY/MM/DD HH:MM):", t.date);
+    const newDate = prompt("修改日期 (格式 YYYY/MM/DD):", t.date);
 
     if (newDesc !== null && !isNaN(newAmount) && newDate !== null) {
-        // 先回退舊金額
         state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
-        // 更新數據
         t.desc = newDesc;
         t.amount = newAmount;
         t.date = newDate;
-        // 加上新金額
         state.balance[t.currency] += t.type === "income" ? t.amount : -t.amount;
         
         save(); updateUI(); renderHistoryDetails();
@@ -254,16 +256,14 @@ function undoWorkDay() {
 
 function showWorkLogs() { alert("打卡紀錄:\n" + state.workLogs.join('\n')); }
 
-function exportCSV() {
-    let csv = "\ufeff日期,項目,金額,幣別\n";
-    state.transactions.forEach(t => csv += `${t.date},${t.desc},${t.amount},${t.currency}\n`);
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-    link.download = "澳洲紀錄.csv";
-    link.click();
+function resetAssets() { 
+    if (confirm("⚠️ 警告：確定要清空所有資料嗎？")) { 
+        if (confirm("🔥 最後確認：此操作無法復原，所有資產與紀錄將消失！")) {
+            localStorage.clear(); 
+            location.reload(); 
+        }
+    } 
 }
-
-function resetAssets() { if (confirm("確定重置嗎？這將清空此手機上的所有紀錄。")) { localStorage.clear(); location.reload(); } }
 
 function updateUI() {
     const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
@@ -290,7 +290,6 @@ function updateUI() {
     document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
     document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
 
-    // 更新薪資顯示
     document.getElementById("weekly-salary-display").innerText = (state.weeklyHours * state.weeklyWage).toFixed(2);
 
     const list = document.getElementById("transaction-list");

@@ -8,25 +8,20 @@
   --text-muted: #666666;
 }
 
-body {
-  font-family: -apple-system, sans-serif;
-  background: var(--bg-color);
-  margin: 0; padding: 15px;
-}
-
+body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 15px; }
 .app-container { max-width: 500px; margin: 0 auto; }
 
-.author-info-center { text-align: center; margin-bottom: 15px; }
-.author-info-center p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; }
+.author-info-center, .footer-contact { text-align: center; }
+.author-info-center p, .footer-contact p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; }
 
-.custom-text, .salary-text, .progress-info span, .label { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; }
+.custom-text { font-size: 0.75rem !important; color: var(--text-muted) !important; }
 
 .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
 .shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .primary-card { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; }
 
-.primary-card .card-h2-title { color: white !important; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
-h1.main-title { font-size: 1.3rem; text-align: center; margin-bottom: 5px; }
+.card-h2-title { font-size: 0.9rem; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.primary-card .card-h2-title { color: white; }
 
 .eval-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; margin-bottom: 15px; }
 .main-value { font-weight: bold; font-size: 1rem; }
@@ -38,48 +33,47 @@ h1.main-title { font-size: 1.3rem; text-align: center; margin-bottom: 5px; }
 .invest-box small { font-size: 0.65rem; color: #888; display: block; }
 .invest-box span { font-weight: bold; font-size: 0.85rem; color: #333; }
 
+.progress-row { margin-bottom: 8px; }
+.progress-info { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px; }
+.progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--secondary-color); width: 0%; transition: 0.3s; }
+
+/* 簽證按鈕統一規格 */
+.btn-group-large, .work-btn-sub { display: flex; gap: 10px; }
+.work-btn-large, .sub-btn { 
+  flex: 1; padding: 15px; border: none; border-radius: 8px; 
+  font-weight: bold; font-size: 0.9rem !important; cursor: pointer; color: white !important;
+}
+.work-btn-large { background: var(--secondary-color); }
+.sub-btn { background: #95a5a6; } /* 與重置按鈕顏色一致 */
+
 .spacer-sm { margin-bottom: 10px; }
 .spacer-md { margin-bottom: 20px; }
 .mt-10 { margin-top: 10px; }
 
-.progress-row { margin-bottom: 8px; }
-.progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--secondary-color); width: 0%; transition: 0.3s; }
-
-.salary-result-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-
-.btn-group-large { display: flex; gap: 10px; }
-.work-btn-large { width: 100%; padding: 15px; background: var(--secondary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-
-.btn-group-mini { display: flex; gap: 5px; }
-
-/* 支出收入按鈕顏色 */
+/* 支出收入配色 */
 .type-switcher { display: flex; gap: 5px; }
-.type-btn { flex: 1; padding: 12px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-.btn-expense.active { background: var(--expense-color) !important; color: white !important; border-color: var(--expense-color); }
-.btn-income.active { background: var(--income-color) !important; color: white !important; border-color: var(--income-color); }
+.type-btn { flex: 1; padding: 12px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+.btn-expense.active { background: var(--expense-color) !important; color: white !important; }
+.btn-income.active { background: var(--income-color) !important; color: white !important; }
 .type-btn.active { background: var(--primary-color); color: white; }
 
-/* 日期選擇器跑版修正 */
-.date-input-container { width: 100%; margin: 10px 0; overflow: hidden; }
-.styled-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+/* 日期選擇器樣式修正 */
+.date-input-container { display: flex; justify-content: center; margin: 10px 0; }
+.styled-input { width: auto; min-width: 180px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; background: #f9f9f9; }
 
 input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-.input-flex { display: flex; gap: 8px; align-items: center; }
+.input-flex { display: flex; gap: 8px; }
 
 .btn-primary-action { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .mini-btn { background: #eee; color: var(--primary-color); border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
-
 .btn-reset-all { background: #fff; color: #e74c3c; border: 1px solid #e74c3c; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
 
 .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #eee; }
 .income { color: var(--income-color); font-weight: bold; }
 .expense { color: var(--expense-color); font-weight: bold; }
 
-/* Modal 樣式優化 */
+/* Modal 基礎 */
 .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; }
-.modal-content { background:#fff; margin:10% auto; padding:25px; width:85%; border-radius:15px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.modal-content { background:#fff; margin:15% auto; padding:25px; width:80%; border-radius:15px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
 .close-x { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; color: #999; }
-
-.footer-contact { text-align: center; margin-top: 30px; }
-.footer-contact a { color: inherit; text-decoration: underline; }

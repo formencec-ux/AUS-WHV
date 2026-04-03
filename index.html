@@ -68,7 +68,7 @@
             <input type="number" id="work-wage" placeholder="時薪" oninput="saveSalaryBase()">
           </div>
           
-          <div class="btn-group-large mt-10">
+          <div class="btn-group-half mt-10">
             <button class="work-btn-large" style="background:#3498db;" onclick="appendHours()">累加時數</button>
             <button class="work-btn-large" style="background:#95a5a6;" onclick="resetWeeklySalary()">重置累計</button>
           </div>
@@ -82,8 +82,8 @@
           </div>
 
           <div class="work-action-group">
-            <button class="work-btn-large" style="background:#27ae60; width: 100%; margin-bottom: 10px;" onclick="addWorkDay()">不想上班但沒錢...</button>
-            <div class="work-btn-sub">
+            <button class="work-btn-full" style="background:#27ae60;" onclick="addWorkDay()">不想上班但沒錢...</button>
+            <div class="btn-group-half">
               <button class="sub-btn" onclick="undoWorkDay()">按錯ㄌ</button>
               <button class="sub-btn" onclick="showWorkLogs()">紀錄</button>
             </div>
@@ -201,7 +201,6 @@
         <input type="number" id="edit-t-amount" class="spacer-sm">
         <button class="btn-primary-action" onclick="updateTransaction()">確認修改</button>
       </div></div>
-
     </div>
     <script src="script.js"></script>
   </body>

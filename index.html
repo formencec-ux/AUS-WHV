@@ -31,7 +31,7 @@
           <div class="currency-details">
             <div class="card-header-flex">
                 <h2 class="card-h2-title" style="margin:0;">目前資產分佈</h2>
-                <button class="mini-btn" onclick="toggleAccountModal()">管理單位</button>
+                <button class="mini-btn" onclick="toggleModal('account-modal')">管理單位</button>
             </div>
             <div id="account-display-list"></div>
           </div>
@@ -40,7 +40,10 @@
         <section class="card shadow">
           <div class="card-header-flex">
             <h2 class="card-h2-title"><i class="fas fa-chart-line"></i> 投資持倉摘要</h2>
-            <button class="mini-btn" onclick="toggleStockModal()">詳細資料</button>
+            <div class="btn-group-mini">
+                <button class="mini-btn" onclick="toggleModal('stock-modal')">詳細資料</button>
+                <button class="mini-btn" onclick="doubleConfirmReset('investments')">重置</button>
+            </div>
           </div>
           <div class="invest-grid">
             <div class="invest-box"><small>台股投入</small><span id="invest-twd">0</span></div>
@@ -105,11 +108,13 @@
         <section class="card shadow">
           <h2 class="card-h2-title"><i class="fas fa-edit"></i> 新增收支紀錄</h2>
           <div id="type-container" class="type-switcher spacer-sm">
-            <button class="type-btn active" data-type="expense" onclick="setType('expense')">支出</button>
-            <button class="type-btn" data-type="income" onclick="setType('income')">收入</button>
+            <button class="type-btn active btn-expense" data-type="expense" onclick="setType('expense')">支出</button>
+            <button class="type-btn btn-income" data-type="income" onclick="setType('income')">收入</button>
           </div>
           <input type="hidden" id="trans-type" value="expense" />
-          <input type="date" id="trans-date" class="styled-input full-width-input">
+          <div class="date-input-container">
+            <input type="date" id="trans-date" class="styled-input">
+          </div>
           <div class="input-flex mt-10">
             <input type="number" id="trans-amount" placeholder="金額" style="flex:1;">
             <input type="text" id="trans-desc" placeholder="項目" style="flex:2;">
@@ -123,10 +128,17 @@
         <section class="card shadow">
           <div class="card-header-flex">
             <h2 class="card-h2-title" style="margin:0;"><i class="fas fa-history"></i> 最近紀錄</h2>
-            <button class="mini-btn" onclick="toggleHistoryModal()">編輯 / 全看</button>
+            <div class="btn-group-mini">
+                <button class="mini-btn" onclick="toggleModal('history-modal')">編輯</button>
+                <button class="mini-btn" onclick="doubleConfirmReset('transactions')">重置</button>
+            </div>
           </div>
           <div id="transaction-list"></div>
         </section>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn-reset-all" onclick="doubleConfirmReset('all')">全部重置</button>
+        </div>
 
         <footer class="footer-contact">
           <p>BUG回報與新增功能建議聯絡方式：</p>
@@ -135,24 +147,39 @@
       </main>
 
       <div id="account-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('account-modal')">&times;</span>
         <h3>管理單位</h3>
         <input type="text" id="new-acc-name" placeholder="單位名稱" class="spacer-sm">
         <select id="new-acc-curr" class="spacer-sm"><option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option></select>
         <button class="btn-primary-action" onclick="addAccountUnit()">新增單位</button>
         <div id="account-manage-list" class="mt-10"></div>
-        <button class="mini-btn" style="width:100%; margin-top:10px;" onclick="toggleAccountModal()">關閉</button>
       </div></div>
 
       <div id="stock-modal" class="modal"><div class="modal-content">
-        <h3>持倉細節</h3><div id="stock-detail-list"></div>
-        <button class="mini-btn" style="width:100%; margin-top:10px;" onclick="toggleStockModal()">關閉</button>
+        <span class="close-x" onclick="toggleModal('stock-modal')">&times;</span>
+        <h3>持倉細節</h3>
+        <div id="stock-detail-list"></div>
       </div></div>
 
       <div id="history-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('history-modal')">&times;</span>
         <h3>歷史紀錄管理</h3>
-        <div id="full-history-list" style="max-height:300px; overflow-y:auto;"></div>
-        <button class="mini-btn" style="width:100%; margin-top:10px;" onclick="toggleHistoryModal()">關閉</button>
+        <div id="full-history-list" style="max-height:350px; overflow-y:auto;"></div>
       </div></div>
+      
+      <div id="edit-stock-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('edit-stock-modal')">&times;</span>
+        <h3>編輯投資</h3>
+        <input type="hidden" id="edit-stock-id">
+        <label class="custom-text">標的名稱</label>
+        <input type="text" id="edit-stock-name" class="spacer-sm">
+        <label class="custom-text">股數</label>
+        <input type="number" id="edit-stock-shares" class="spacer-sm">
+        <label class="custom-text">投入總金額</label>
+        <input type="number" id="edit-stock-cost" class="spacer-sm">
+        <button class="btn-primary-action" onclick="updateStock()">確認修改</button>
+      </div></div>
+
     </div>
     <script src="script.js"></script>
   </body>

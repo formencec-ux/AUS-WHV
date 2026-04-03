@@ -4,42 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>澳打記帳與投資管理</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <style>
-      /* 這裡放入你原本完美的 CSS，並加上我補強的幾行間距與字體設定 */
-      :root { --primary-color: #2c3e50; --accent-color: #f39c12; --bg-color: #f4f7f6; }
-      body { font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; background: var(--bg-color); color: #333; margin: 0; padding: 15px; }
-      .app-container { max-width: 500px; margin: 0 auto; }
-      .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-      .shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-      h1.main-title { font-size: 1.4rem; text-align: center; margin-bottom: 5px; }
-      .author-info, .footer-contact { text-align: center; margin-bottom: 20px; }
-      /* 9. 統一字體與顏色 */
-      .author-info p, .footer-contact p, .custom-text, .label, .progress-info span, .salary-text { 
-        font-size: 0.75rem !important; color: #666 !important; margin: 4px 0; line-height: 1.4;
-      }
-      .mini-btn { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
-      .btn-primary { width: 100%; padding: 12px; border-radius: 8px; border: none; color: #fff; font-weight: bold; cursor: pointer; margin-top: 10px; }
-      .type-switcher { display: flex; gap: 5px; }
-      .type-btn { flex: 1; padding: 8px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-      .type-btn.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-      input, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-      .input-flex { display: flex; gap: 8px; margin-bottom: 10px; }
-      .input-flex input { margin-bottom: 0; }
-      .progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 5px; }
-      .progress-fill { height: 100%; background: #27ae60; width: 0%; transition: width 0.3s; }
-      .invest-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
-      .invest-box { background: #f9f9f9; padding: 10px; border-radius: 8px; text-align: center; }
-      .invest-box small { display: block; font-size: 0.65rem; color: #888; }
-      .invest-box span { font-weight: bold; font-size: 0.9rem; }
-      .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-      .income { color: #27ae60; } .expense { color: #e74c3c; }
-      .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; }
-      .modal-content { background: #fff; margin: 15% auto; padding: 20px; width: 85%; max-width: 400px; border-radius: 12px; }
-      /* 3, 5, 8. 間距修正 */
-      .spacer-sm { margin-bottom: 10px; }
-      .spacer-md { margin-bottom: 20px; }
-    </style>
   </head>
   <body>
     <div class="app-container">
@@ -53,24 +19,27 @@
       </header>
 
       <main>
-        <section class="card shadow" style="background: linear-gradient(135deg, #2c3e50, #34495e); color: white;">
-          <h2 style="font-size: 1rem; margin-top:0;"><i class="fas fa-coins"></i> 總資產估算</h2>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center;">
-            <div><small style="font-size:0.6rem; opacity:0.8;">AUD</small><div id="eval-aud" style="font-weight:bold;">$ 0.00</div></div>
-            <div><small style="font-size:0.6rem; opacity:0.8;">TWD</small><div id="eval-twd" style="font-weight:bold;">$ 0</div></div>
-            <div><small style="font-size:0.6rem; opacity:0.8;">USD</small><div id="eval-usd" style="font-weight:bold;">$ 0.00</div></div>
+        <section class="card shadow primary-card">
+          <h2 class="card-h2-title"><i class="fas fa-coins"></i> 總資產估算 (現金 + 股票)</h2>
+          <div class="asset-evaluation">
+            <div class="eval-grid">
+              <div class="eval-item"><small>換算 AUD</small><div id="eval-aud" class="main-value">$ 0.00</div></div>
+              <div class="eval-item"><small>換算 TWD</small><div id="eval-twd" class="main-value">$ 0</div></div>
+              <div class="eval-item"><small>換算 USD</small><div id="eval-usd" class="main-value">$ 0.00</div></div>
+            </div>
           </div>
-          <hr style="opacity:0.2; margin: 15px 0;">
-          <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span class="label" style="color: white !important; opacity: 0.9;">目前資產分佈</span>
-            <button class="mini-btn" onclick="toggleAccountModal()">管理單位</button>
+          <div class="currency-details">
+            <div class="card-header-flex">
+                <span class="custom-text">目前資產分佈</span>
+                <button class="mini-btn" onclick="toggleAccountModal()">管理單位</button>
+            </div>
+            <div id="account-display-list"></div>
           </div>
-          <div id="account-display-list"></div>
         </section>
 
         <section class="card shadow">
-          <div style="display:flex; justify-content: space-between; align-items: center;">
-            <h2 style="font-size: 0.9rem; margin:0;"><i class="fas fa-chart-line"></i> 投資持倉摘要</h2>
+          <div class="card-header-flex">
+            <h2 class="card-h2-title"><i class="fas fa-chart-line"></i> 投資持倉摘要</h2>
             <button class="mini-btn" onclick="toggleStockModal()">詳細資料</button>
           </div>
           <div class="invest-grid">
@@ -81,50 +50,56 @@
         </section>
 
         <section class="card shadow">
-          <h2 style="font-size: 0.9rem; margin-top:0;"><i class="fas fa-calendar-check"></i> 簽證天數與薪資計算</h2>
-          <div class="progress-info"><span>二簽 (88天)</span><b id="days-2nd-text">0 / 88</b></div>
-          <div class="progress-bar spacer-sm"><div class="progress-fill" id="progress-2nd"></div></div>
-          <div class="progress-info"><span>三簽 (179天)</span><b id="days-3rd-text">0 / 179</b></div>
-          <div class="progress-bar spacer-md"> <div class="progress-fill" id="progress-3rd" style="background:#f39c12;"></div>
+          <h2 class="card-h2-title"><i class="fas fa-calendar-check"></i> 簽證天數與薪資計算</h2>
+          <div class="progress-row">
+            <div class="progress-info"><span class="custom-text">二簽 (88天)</span><b id="days-2nd-text" class="custom-text">0 / 88</b></div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-2nd"></div></div>
+          </div>
+          <div class="progress-row spacer-md"> <div class="progress-info"><span class="custom-text">三簽 (179天)</span><b id="days-3rd-text" class="custom-text">0 / 179</b></div>
+            <div class="progress-bar"><div class="progress-fill" id="progress-3rd" style="background:#f39c12;"></div></div>
           </div>
           
           <div class="input-flex">
-            <input type="number" id="work-hours-today" placeholder="今日時數">
+            <input type="number" id="work-hours-today" placeholder="輸入今日時數">
             <input type="number" id="work-wage" placeholder="時薪" oninput="saveSalaryBase()">
           </div>
-          <div style="display:flex; justify-content: space-between; align-items: center;">
-            <span class="salary-text">累計 <b id="total-hours-display" style="color:#333">0</b> hr 薪資 <b id="weekly-salary-display" style="color:#333">0.00</b> (已加 <b id="append-count-display" style="color:#333">0</b> 次)</span>
-            <div>
+          <div class="salary-result-row">
+            <span class="salary-text custom-text">
+              累計：<b id="total-hours-display">0</b> hr 
+              薪資：<b id="weekly-salary-display">0.00</b> 
+              (已累加 <b id="append-count-display">0</b> 次)
+            </span>
+            <div class="btn-group-mini">
               <button class="mini-btn" onclick="appendHours()">累加</button>
               <button class="mini-btn" onclick="resetWeeklySalary()">重置</button>
             </div>
           </div>
 
-          <div style="margin-top: 20px;"> <button class="btn-primary" onclick="addWorkDay()" style="background:#27ae60; margin:0;">不想上班但沒錢...</button>
-            <div class="input-flex" style="margin-top:10px;"> <button class="type-btn custom-text" onclick="undoWorkDay()">按錯ㄌ</button>
-              <button class="type-btn custom-text" onclick="showWorkLogs()">紀錄</button>
+          <div class="work-action-group">
+            <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
+            <div class="work-btn-sub">
+              <button class="sub-btn custom-text" onclick="undoWorkDay()">按錯ㄌ</button>
+              <button class="sub-btn custom-text" onclick="showWorkLogs()">紀錄</button>
             </div>
           </div>
         </section>
 
         <section class="card shadow">
-          <h2 style="font-size: 0.9rem; margin-top:0;"><i class="fas fa-exchange-alt"></i> 資產幣值轉換</h2>
-          <div style="display:flex; align-items:center; justify-content: center; gap: 10px; margin-bottom:10px;">
-            <select id="ex-from" style="margin:0;">
-              <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
-            </select>
-            <div style="color:#999; font-weight:bold;">></div> <select id="ex-to" style="margin:0;">
-              <option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option>
-            </select>
-          </div>
-          <div class="input-flex">
-            <input type="number" id="ex-amount" placeholder="金額" style="flex:2;">
-            <button class="btn-primary" onclick="executeExchange()" style="margin:0; flex:1; background: #2c3e50;">換匯</button>
+          <h2 class="card-h2-title"><i class="fas fa-exchange-alt"></i> 資產幣值轉換</h2>
+          <div class="exchange-form">
+            <div class="exchange-row">
+              <select id="ex-from" class="styled-select"><option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option></select>
+              <div class="exchange-icon">></div> <select id="ex-to" class="styled-select"><option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option></select>
+            </div>
+            <div class="input-flex mt-10">
+              <input type="number" id="ex-amount" placeholder="金額" style="flex:2;">
+              <button class="btn-primary-action" onclick="executeExchange()" style="flex:1;">換匯</button>
+            </div>
           </div>
         </section>
 
         <section class="card shadow">
-          <h2 style="font-size: 0.9rem; margin-top:0;"><i class="fas fa-plus-circle"></i> 新增股票投資</h2>
+          <h2 class="card-h2-title"><i class="fas fa-plus-circle"></i> 新增股票投資</h2>
           <div class="type-switcher spacer-sm">
             <button class="type-btn active" data-curr="TWD" onclick="setStockCurr('TWD')">台股TWD</button>
             <button class="type-btn" data-curr="USD" onclick="setStockCurr('USD')">美股USD</button>
@@ -135,36 +110,38 @@
             <input type="text" id="stock-name" placeholder="標的名稱" style="flex:2;">
             <input type="number" id="stock-shares" placeholder="股數" style="flex:1;">
           </div>
-          <input type="number" id="stock-cost" placeholder="投入總金額">
-          <button class="btn-primary" onclick="addInvestment()" style="background: #2c3e50;">記錄投資</button>
+          <input type="number" id="stock-cost" placeholder="投入總金額 (含手續費)">
+          <button class="btn-primary-action" onclick="addInvestment()">記錄投資</button>
         </section>
 
         <section class="card shadow">
-          <h2 style="font-size: 0.9rem; margin-top:0;"><i class="fas fa-edit"></i> 新增收支紀錄</h2>
+          <h2 class="card-h2-title"><i class="fas fa-edit"></i> 新增收支紀錄</h2>
           <div class="type-switcher spacer-sm">
             <button class="type-btn active" data-type="expense" onclick="setType('expense')">支出</button>
             <button class="type-btn" data-type="income" onclick="setType('income')">收入</button>
           </div>
           <input type="hidden" id="trans-type" value="expense" />
-          <input type="date" id="trans-date">
-          <div class="input-flex">
+          <input type="date" id="trans-date" class="styled-input">
+          <div class="input-flex mt-10">
             <input type="number" id="trans-amount" placeholder="金額" style="flex:1;">
             <input type="text" id="trans-desc" placeholder="項目" style="flex:2;">
           </div>
-          <select id="trans-account-select" class="spacer-sm"></select> <button class="btn-primary" onclick="addTransaction()" style="background: #2c3e50;">確認送出</button>
+          <div class="spacer-sm mt-10"> <select id="trans-account-select" class="styled-select"></select>
+          </div>
+          <button class="btn-primary-action" onclick="addTransaction()">確認送出</button>
         </section>
 
         <section class="card shadow">
-          <div style="display:flex; justify-content: space-between; align-items: center;">
-            <h2 style="font-size: 0.9rem; margin:0;"><i class="fas fa-history"></i> 最近紀錄</h2>
-            <button class="mini-btn" onclick="toggleHistoryModal()">展開編輯</button>
+          <div class="card-header-flex">
+            <h2 class="card-h2-title" style="margin:0;"><i class="fas fa-history"></i> 最近紀錄</h2>
+            <button class="mini-btn" onclick="toggleHistoryModal()">編輯</button>
           </div>
           <div id="transaction-list"></div>
         </section>
 
         <footer class="footer-contact">
           <p>BUG回報與新增功能建議聯絡方式：</p>
-          <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank" style="color: inherit;">https://discord.gg/62t5Me3gmn</a></p>
+          <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
         </footer>
       </main>
 
@@ -172,13 +149,13 @@
         <h3>管理單位</h3>
         <input type="text" id="new-acc-name" placeholder="單位名稱">
         <select id="new-acc-curr"><option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option></select>
-        <button class="btn-primary" onclick="addAccountUnit()" style="background:#2c3e50">新增</button>
-        <div id="account-manage-list" style="margin-top:15px;"></div>
+        <button class="btn-primary-action" onclick="addAccountUnit()">新增單位</button>
+        <div id="account-manage-list" class="mt-10"></div>
         <button class="mini-btn" style="width:100%; margin-top:10px;" onclick="toggleAccountModal()">關閉</button>
       </div></div>
 
       <div id="stock-modal" class="modal"><div class="modal-content">
-        <h3>持倉明細</h3><div id="stock-detail-list"></div>
+        <h3>持倉細節</h3><div id="stock-detail-list"></div>
         <button class="mini-btn" style="width:100%; margin-top:10px;" onclick="toggleStockModal()">關閉</button>
       </div></div>
 

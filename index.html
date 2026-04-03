@@ -31,11 +31,10 @@
           <div class="exchange-rate-info" id="exchange-info"></div>
           <div class="currency-details">
             <div class="card-header-flex" style="border:none; margin-bottom: 8px;">
-                <div class="detail-title">目前資產分佈</div>
+                <div class="detail-title custom-text-style">目前資產分佈</div>
                 <button class="mini-btn" onclick="toggleAccountModal()">管理單位</button>
             </div>
-            <div class="currency-list" id="account-display-list">
-                </div>
+            <div class="currency-list" id="account-display-list"></div>
           </div>
         </section>
 
@@ -45,9 +44,9 @@
             <button class="mini-btn" onclick="toggleStockModal()">詳細資料</button>
           </div>
           <div class="invest-grid">
-            <div class="invest-box"><small>澳股投入</small><span id="invest-aud">0.00</span></div>
             <div class="invest-box"><small>台股投入</small><span id="invest-twd">0</span></div>
             <div class="invest-box"><small>美股投入</small><span id="invest-usd">0.00</span></div>
+            <div class="invest-box"><small>澳股投入</small><span id="invest-aud">0.00</span></div>
           </div>
         </section>
 
@@ -55,11 +54,10 @@
           <h2><i class="fas fa-calendar-check"></i> 簽證天數與薪資計算</h2>
           <div class="progress-container">
             <div class="progress-row">
-              <div class="progress-info"><span>二簽 (88天)</span><b id="days-2nd-text">0 / 88</b></div>
+              <div class="progress-info"><span class="custom-text-style">二簽 (88天)</span><b id="days-2nd-text" class="custom-text-style">0 / 88</b></div>
               <div class="progress-bar"><div class="progress-fill" id="progress-2nd"></div></div>
             </div>
-            <div class="progress-row">
-              <div class="progress-info"><span>三簽 (179天)</span><b id="days-3rd-text">0 / 179</b></div>
+            <div class="progress-row" style="margin-bottom: 20px;"> <div class="progress-info"><span class="custom-text-style">三簽 (179天)</span><b id="days-3rd-text" class="custom-text-style">0 / 179</b></div>
               <div class="progress-bar"><div class="progress-fill" id="progress-3rd"></div></div>
             </div>
           </div>
@@ -70,7 +68,11 @@
               <input type="number" id="work-wage" placeholder="時薪" oninput="saveSalaryBase()">
             </div>
             <div class="salary-result">
-              <span class="salary-text">累計時數：<b id="total-hours-display">0</b> hr | 薪資：<b id="weekly-salary-display">0.00</b></span>
+              <span class="salary-text custom-text-style">
+                累計：<b id="total-hours-display">0</b> hr 
+                薪資：<b id="weekly-salary-display">0.00</b> 
+                (已累加 <b id="append-count-display">0</b> 次)
+              </span>
               <div>
                 <button class="mini-btn" onclick="appendHours()">累加</button>
                 <button class="mini-btn" onclick="resetWeeklySalary()">重置</button>
@@ -78,11 +80,9 @@
             </div>
           </div>
 
-          <div class="work-action-group">
-            <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
-            <div class="work-btn-sub">
-              <button onclick="undoWorkDay()">按錯ㄌ</button>
-              <button onclick="showWorkLogs()">紀錄</button>
+          <div class="work-action-group" style="margin-top: 15px;"> <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
+            <div class="work-btn-sub" style="margin-top: 8px;"> <button class="custom-text-style" onclick="undoWorkDay()">按錯ㄌ</button>
+              <button class="custom-text-style" onclick="showWorkLogs()">紀錄</button>
             </div>
           </div>
         </section>
@@ -90,20 +90,19 @@
         <section class="card shadow">
           <h2><i class="fas fa-exchange-alt"></i> 資產幣值轉換</h2>
           <div class="exchange-form">
-            <div class="exchange-input-row">
-              <select id="ex-from" class="styled-select" onchange="updatePreview()">
+            <div class="exchange-input-row" style="align-items: center; justify-content: center;"> <select id="ex-from" class="styled-select" onchange="updatePreview()">
                 <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
               </select>
-              <i class="fas fa-chevron-right" style="align-self: center; color: #999;"></i>
+              <div style="padding: 0 15px; color: #999;"><i class="fas fa-chevron-right"></i></div>
               <select id="ex-to" class="styled-select" onchange="updatePreview()">
                 <option value="TWD">TWD</option><option value="AUD">AUD</option><option value="USD">USD</option>
               </select>
             </div>
             <div class="exchange-input-row mt-10">
               <input type="number" id="ex-amount" placeholder="換出金額" oninput="updatePreview()" style="margin-bottom: 0; flex: 2;">
-              <button class="btn-primary-small no-wrap" onclick="executeExchange()" style="margin-top: 0; flex: 1;">換匯</button>
+              <button class="btn-primary" onclick="executeExchange()" style="margin-top: 0; flex: 1; padding: 10px; background-color: #2c3e50;">換匯</button>
             </div>
-            <div id="ex-preview" style="font-size: 0.75rem; color: #666; margin-top: 8px; min-height: 1.2em;"></div>
+            <div id="ex-preview" class="custom-text-style" style="margin-top: 8px; min-height: 1.2em;"></div>
           </div>
         </section>
 
@@ -111,11 +110,11 @@
           <h2><i class="fas fa-plus-circle"></i> 新增股票投資</h2>
           <div class="input-form">
             <div class="type-switcher" id="stock-currency-container">
-              <button class="type-btn active" data-curr="AUD" onclick="setStockCurr('AUD')">澳股AUD</button>
-              <button class="type-btn" data-curr="TWD" onclick="setStockCurr('TWD')">台股TWD</button>
+              <button class="type-btn active" data-curr="TWD" onclick="setStockCurr('TWD')">台股TWD</button>
               <button class="type-btn" data-curr="USD" onclick="setStockCurr('USD')">美股USD</button>
+              <button class="type-btn" data-curr="AUD" onclick="setStockCurr('AUD')">澳股AUD</button>
             </div>
-            <input type="hidden" id="stock-curr" value="AUD" />
+            <input type="hidden" id="stock-curr" value="TWD" />
             <div class="input-flex mt-10">
               <input type="text" id="stock-name" placeholder="標的名稱" style="flex: 2;">
               <input type="number" id="stock-shares" placeholder="股數" style="flex: 1;">
@@ -143,8 +142,7 @@
               <input type="text" id="trans-desc" placeholder="項目" style="flex: 2;">
             </div>
 
-            <div class="mt-10">
-                <select id="trans-account-select" class="styled-select"></select>
+            <div class="mt-10" style="margin-bottom: 10px;"> <select id="trans-account-select" class="styled-select"></select>
             </div>
             <button class="btn-primary" onclick="addTransaction()">確認送出</button>
           </div>
@@ -162,49 +160,14 @@
         </section>
 
         <footer class="footer-contact">
-          <p>BUG回報與新增功能建議聯絡方式：</p>
-          <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
+          <div class="author-info">
+              <p>BUG回報與新增功能建議聯絡方式：</p>
+              <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank" style="color: inherit; text-decoration: underline;">https://discord.gg/62t5Me3gmn</a></p>
+          </div>
         </footer>
       </main>
 
-      <div id="account-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>管理存款單位</h3>
-            <span class="close" onclick="toggleAccountModal()">&times;</span>
-          </div>
-          <div class="input-form">
-              <input type="text" id="new-acc-name" placeholder="單位名稱 (如:現金, NAB)">
-              <select id="new-acc-curr" class="styled-select">
-                  <option value="AUD">AUD</option><option value="TWD">TWD</option><option value="USD">USD</option>
-              </select>
-              <button class="btn-primary" onclick="addAccountUnit()">新增單位</button>
-          </div>
-          <div id="account-manage-list" class="mt-10"></div>
-        </div>
       </div>
-
-      <div id="stock-modal" class="modal">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>持倉細節</h3>
-            <span class="close" onclick="toggleStockModal()">&times;</span>
-          </div>
-          <div id="stock-detail-list"></div>
-        </div>
-      </div>
-
-      <div id="history-modal" class="modal">
-        <div class="modal-content" style="max-width: 450px;">
-          <div class="modal-header">
-            <h3>所有紀錄編輯</h3>
-            <span class="close" onclick="toggleHistoryModal()">&times;</span>
-          </div>
-          <div id="full-history-list"></div>
-        </div>
-      </div>
-    </div>
-
     <script src="script.js"></script>
   </body>
 </html>

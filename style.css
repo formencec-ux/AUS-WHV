@@ -14,8 +14,19 @@ body {
 
 .app-container { max-width: 500px; margin: 0 auto; }
 
-/* 1 & 9. 統一字體大小與顏色 (與製作人資訊一致) */
-.author-info p, .footer-contact p, .custom-text, .salary-text, .progress-info span, .label {
+/* 1. 製作人資訊置中 */
+.author-info-center {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.author-info-center p {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  margin: 4px 0;
+}
+
+/* 9. 基礎文字與標籤 */
+.footer-contact p, .custom-text, .salary-text, .progress-info span, .label {
   font-size: 0.75rem !important;
   color: var(--text-muted) !important;
   margin: 4px 0;
@@ -25,8 +36,18 @@ body {
 .shadow { box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 .primary-card { background: linear-gradient(135deg, #2c3e50, #34495e); color: white; }
 
+/* 2. 目前資產分布白字與標題一致 */
+.primary-card .card-h2-title {
+  color: white !important;
+  font-size: 0.9rem;
+  margin-top: 0;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 h1.main-title { font-size: 1.3rem; text-align: center; margin-bottom: 5px; }
-.card-h2-title { font-size: 0.9rem; margin-top: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
 .eval-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; margin-bottom: 15px; }
 .main-value { font-weight: bold; font-size: 1rem; }
@@ -38,7 +59,7 @@ h1.main-title { font-size: 1.3rem; text-align: center; margin-bottom: 5px; }
 .invest-box small { font-size: 0.65rem; color: #888; display: block; }
 .invest-box span { font-weight: bold; font-size: 0.85rem; color: #333; }
 
-/* 3, 5, 8. 間距修正 */
+/* 間距修正 */
 .spacer-sm { margin-bottom: 10px; }
 .spacer-md { margin-bottom: 20px; }
 .mt-10 { margin-top: 10px; }
@@ -49,33 +70,44 @@ h1.main-title { font-size: 1.3rem; text-align: center; margin-bottom: 5px; }
 
 .salary-result-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
 
-/* 5. 按鈕間距 */
-.work-btn-large { width: 100%; padding: 12px; background: var(--secondary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.work-btn-sub { display: flex; gap: 8px; margin-top: 10px; }
-.sub-btn { flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; }
+/* 6. 簽證按鈕加大 */
+.btn-group-large { display: flex; gap: 10px; }
+.work-btn-large { 
+  width: 100%; 
+  padding: 15px; 
+  background: var(--secondary-color); 
+  color: white; 
+  border: none; 
+  border-radius: 8px; 
+  font-weight: bold; 
+  cursor: pointer; 
+  font-size: 0.9rem;
+}
 
-/* 6. 幣值轉換置中 */
-.exchange-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
-.exchange-icon { color: #999; font-weight: bold; }
+.work-btn-sub { display: flex; gap: 8px; margin-top: 10px; }
+.sub-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; }
 
 /* 按鈕樣式統一 */
-.btn-primary-action { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.mini-btn { background: #eee; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+.btn-primary-action { width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+.mini-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+.card .mini-btn { background: #eee; color: var(--primary-color); border: none; }
 
 .type-switcher { display: flex; gap: 5px; }
-.type-btn { flex: 1; padding: 8px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+.type-btn { flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
 .type-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
-input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-.input-flex { display: flex; gap: 8px; }
+/* 8. 收支紀錄輸入框對齊修正 */
+input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+.full-width-input { display: block; width: 100% !important; margin: 10px 0; }
+.input-flex { display: flex; gap: 8px; align-items: center; }
 .input-flex input { margin-bottom: 0; }
 
-.transaction-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+.transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
 .income { color: var(--secondary-color); font-weight: bold; }
 .expense { color: #e74c3c; font-weight: bold; }
 
-.modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:100; }
-.modal-content { background:#fff; margin:20% auto; padding:20px; width:80%; border-radius:12px; }
+.modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; }
+.modal-content { background:#fff; margin:15% auto; padding:20px; width:85%; border-radius:12px; box-sizing: border-box; }
 
 .footer-contact { text-align: center; margin-top: 30px; }
 .footer-contact a { color: inherit; text-decoration: underline; }

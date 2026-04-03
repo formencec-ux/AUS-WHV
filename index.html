@@ -82,7 +82,7 @@
           </div>
 
           <div class="work-action-group">
-            <button class="work-btn-large" style="background:#27ae60;" onclick="addWorkDay()">不想上班但沒錢...</button>
+            <button class="work-btn-large" style="background:#27ae60; width: 100%; margin-bottom: 10px;" onclick="addWorkDay()">不想上班但沒錢...</button>
             <div class="work-btn-sub">
               <button class="sub-btn" onclick="undoWorkDay()">按錯ㄌ</button>
               <button class="sub-btn" onclick="showWorkLogs()">紀錄</button>
@@ -114,16 +114,14 @@
           </div>
           <input type="hidden" id="trans-type" value="expense" />
           
-          <div class="date-input-container">
-            <input type="date" id="trans-date" class="styled-input">
+          <div class="input-flex spacer-sm">
+            <input type="date" id="trans-date" style="flex: 4.5;">
+            <select id="trans-account-select" style="flex: 5.5;"></select>
           </div>
 
           <div class="input-flex mt-10">
             <input type="number" id="trans-amount" placeholder="金額" style="flex:1;">
             <input type="text" id="trans-desc" placeholder="項目" style="flex:2;">
-          </div>
-          <div class="spacer-sm mt-10"> 
-            <select id="trans-account-select" class="styled-select"></select>
           </div>
           <button class="btn-primary-action" onclick="addTransaction()">確認送出</button>
         </section>
@@ -162,7 +160,7 @@
         <span class="close-x" onclick="toggleModal('edit-acc-modal')">&times;</span>
         <h3>編輯單位名稱</h3>
         <input type="hidden" id="edit-acc-id">
-        <input type="text" id="edit-acc-name" class="spacer-sm" placeholder="輸入新名稱">
+        <input type="text" id="edit-acc-name" class="spacer-sm">
         <button class="btn-primary-action" onclick="updateAccountName()">儲存修改</button>
       </div></div>
 

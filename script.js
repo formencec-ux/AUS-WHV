@@ -16,7 +16,7 @@ let state = {
 const DEFAULT_STATE = JSON.parse(JSON.stringify(state));
 
 function init() {
-    const saved = localStorage.getItem("aus_wh_final_v2");
+    const saved = localStorage.getItem("aus_wh_final_v3");
     if (saved) state = JSON.parse(saved);
     const dateEl = document.getElementById('trans-date');
     if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
@@ -25,7 +25,7 @@ function init() {
     updateUI();
 }
 
-function save() { localStorage.setItem("aus_wh_final_v2", JSON.stringify(state)); }
+function save() { localStorage.setItem("aus_wh_final_v3", JSON.stringify(state)); }
 
 async function fetchRates() {
     try {
@@ -96,7 +96,7 @@ function doubleConfirmReset(type) {
         if (confirm("資料即將全部刪除")) {
             if (type === 'all') {
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                localStorage.removeItem("aus_wh_final_v2");
+                localStorage.removeItem("aus_wh_final_v3");
             } else if (type === 'investments') {
                 state.investments = [];
             } else if (type === 'transactions') {

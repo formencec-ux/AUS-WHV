@@ -3,16 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>澳打記帳與投資管理 Pro</title>
+    <title>澳打記帳與投資管理</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   </head>
   <body>
     <div class="app-container">
       <header>
-        <h1 class="main-title">🦘 澳打資產管理 Pro</h1>
+        <h1 class="main-title">🦘 澳打記帳與投資管理</h1>
         <div class="author-info">
           <p>製作人：Rei Liao</p>
+          <p>此軟體為自行製作提供給澳打夥伴使用</p>
+          <p>如遭人販售使用請勿受騙不如斗內我><</p>
         </div>
       </header>
 
@@ -29,12 +31,24 @@
           <div class="exchange-rate-info" id="exchange-info"></div>
           
           <div class="currency-details">
-            <div class="card-header-flex" style="border:none; padding:0; margin-bottom:5px;">
+            <div class="card-header-flex" style="border:none; margin-bottom: 5px;">
                 <div class="detail-title">目前資產分佈</div>
-                <button class="mini-btn" onclick="toggleAccountModal()"><i class="fas fa-plus"></i> 管理單位</button>
+                <button class="mini-btn" onclick="toggleAccountModal()">管理單位</button>
             </div>
-            <div id="account-display-list" class="account-list">
-                </div>
+            <div class="currency-list" id="account-display-list">
+              </div>
+          </div>
+        </section>
+
+        <section class="card shadow investment-summary">
+          <div class="card-header-flex">
+            <h2><i class="fas fa-chart-line"></i> 投資持倉摘要</h2>
+            <button class="mini-btn" onclick="toggleStockModal()">詳細資料</button>
+          </div>
+          <div class="invest-grid">
+            <div class="invest-box"><small>澳股投入</small><span id="invest-aud">0.00</span></div>
+            <div class="invest-box"><small>台股投入</small><span id="invest-twd">0</span></div>
+            <div class="invest-box"><small>美股投入</small><span id="invest-usd">0.00</span></div>
           </div>
         </section>
 
@@ -45,28 +59,31 @@
               <div class="progress-info"><span>二簽 (88天)</span><b id="days-2nd-text">0 / 88</b></div>
               <div class="progress-bar"><div class="progress-fill" id="progress-2nd"></div></div>
             </div>
+            <div class="progress-row">
+              <div class="progress-info"><span>三簽 (179天)</span><b id="days-3rd-text">0 / 179</b></div>
+              <div class="progress-bar"><div class="progress-fill" id="progress-3rd"></div></div>
+            </div>
           </div>
           
           <div class="salary-calc-area">
             <div class="input-flex">
-              <input type="number" id="work-hours-input" placeholder="今日時數">
+              <input type="number" id="work-hours-today" placeholder="今日時數">
               <input type="number" id="work-wage" placeholder="時薪" oninput="saveSalaryBase()">
             </div>
             <div class="salary-result">
-              <div class="salary-text">累計時數：<b id="total-hours-display">0</b> hr</div>
-              <div class="salary-text">預計薪資：<b id="weekly-salary-display">0.00</b></div>
-            </div>
-            <div class="work-btn-sub mt-10">
-                <button onclick="appendHours()" class="work-btn-large" style="flex:2; background: #2c3e50;">累加時數</button>
-                <button onclick="resetWeeklySalary()" class="mini-btn" style="flex:1;">重置全部</button>
+              <span class="salary-text">累計: <b id="total-hours-text">0</b> hr | 預計薪資: <b id="weekly-salary-display">0.00</b></span>
+              <div>
+                <button class="mini-btn" onclick="appendHours()">累加</button>
+                <button class="mini-btn" onclick="resetWeeklySalary()">重置</button>
+              </div>
             </div>
           </div>
 
-          <div class="work-action-group mt-10">
-            <button class="work-btn-large" onclick="addWorkDay()">完成一天工作 (打卡)</button>
+          <div class="work-action-group">
+            <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
             <div class="work-btn-sub">
               <button onclick="undoWorkDay()">按錯ㄌ</button>
-              <button onclick="showWorkLogs()">打卡紀錄</button>
+              <button onclick="showWorkLogs()">紀錄</button>
             </div>
           </div>
         </section>
@@ -78,18 +95,20 @@
               <button class="type-btn active" data-type="expense" onclick="setType('expense')">支出</button>
               <button class="type-btn" data-type="income" onclick="setType('income')">收入</button>
             </div>
+            <input type="hidden" id="trans-type" value="expense" />
             
             <div class="mt-10 full-width-input">
               <input type="date" id="trans-date" class="styled-date-input">
             </div>
 
             <div class="input-flex mt-10">
-              <select id="trans-account" class="styled-select">
-                  </select>
               <input type="number" id="trans-amount" placeholder="金額" style="flex: 1;">
+              <input type="text" id="trans-desc" placeholder="項目" style="flex: 2;">
             </div>
-            <input type="text" id="trans-desc" placeholder="項目說明" class="mt-10">
 
+            <div class="mt-10">
+                <select id="trans-account-select" class="styled-select"></select>
+            </div>
             <button class="btn-primary" onclick="addTransaction()">確認送出</button>
           </div>
         </section>
@@ -98,13 +117,17 @@
           <div class="card-header-flex" style="border:none; margin:0;">
             <h2 style="border:none;"><i class="fas fa-history"></i> 最近紀錄</h2>
             <div>
-                <button class="mini-btn" onclick="toggleHistoryModal()">展開編輯</button>
-                <button class="btn-reset-inline" onclick="resetAssets()">清空所有</button>
+                <button class="mini-btn" onclick="toggleHistoryModal()">展開</button>
+                <button class="btn-reset-inline" onclick="resetAssets()">重置所有資料</button>
             </div>
           </div>
           <ul id="transaction-list" class="list-unstyled"></ul>
         </section>
 
+        <footer class="footer-contact">
+          <p>BUG回報與新增功能建議聯絡方式：</p>
+          <p>Discord <a href="https://discord.gg/62t5Me3gmn" target="_blank">https://discord.gg/62t5Me3gmn</a></p>
+        </footer>
       </main>
 
       <div id="account-modal" class="modal">
@@ -113,23 +136,25 @@
             <h3>管理存款單位</h3>
             <span class="close" onclick="toggleAccountModal()">&times;</span>
           </div>
-          <div class="input-flex">
-              <input type="text" id="new-acc-name" placeholder="單位名稱 (如:NAB)">
-              <select id="new-acc-curr" class="styled-select" style="flex:0.5">
+          <div class="input-form">
+              <input type="text" id="new-acc-name" placeholder="名稱 (例如: NAB銀行、現金)">
+              <select id="new-acc-curr" class="styled-select">
                   <option value="AUD">AUD</option>
                   <option value="TWD">TWD</option>
                   <option value="USD">USD</option>
               </select>
+              <button class="btn-primary" onclick="addAccountUnit()">新增單位</button>
           </div>
-          <button class="btn-primary" onclick="addAccount()">新增單位</button>
           <div id="account-manage-list" class="mt-10"></div>
         </div>
       </div>
 
+      <div id="stock-modal" class="modal"><div class="modal-content">... (同原本)</div></div>
+
       <div id="history-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
           <div class="modal-header">
-            <h3>紀錄維護 (僅限修改內容)</h3>
+            <h3>所有紀錄編輯</h3>
             <span class="close" onclick="toggleHistoryModal()">&times;</span>
           </div>
           <div id="full-history-list"></div>

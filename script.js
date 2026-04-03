@@ -51,8 +51,12 @@ function updateUI() {
     const accSelect = document.getElementById("trans-account-select");
     accSelect.innerHTML = state.accounts.map(a => `<option value="${a.id}">${a.name} (${a.curr})</option>`).join('');
 
-    // 總資產計算
-    const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
+    // 總資產與持倉計算
+    const investSum = state.investments.reduce((acc, inv) => { 
+        if(acc.hasOwnProperty(inv.curr)) acc[inv.curr] += inv.cost; 
+        return acc; 
+    }, { AUD: 0, TWD: 0, USD: 0 });
+
     let cash = { AUD: 0, TWD: 0, USD: 0 };
     state.accounts.forEach(a => cash[a.curr] += a.balance);
 
@@ -63,16 +67,18 @@ function updateUI() {
     document.getElementById("eval-twd").innerText = `$ ${Math.round(totalAUD * r.AUD_TWD).toLocaleString()}`;
     document.getElementById("eval-usd").innerText = `$ ${(totalAUD * r.AUD_USD).toFixed(2)}`;
 
-    // 持倉摘要
     document.getElementById("invest-twd").innerText = Math.round(investSum.TWD).toLocaleString();
     document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
     document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
 
-    // 簽證與薪資
-    document.getElementById("days-2nd-text").innerText = `${state.workDays} / 88`;
-    document.getElementById("progress-2nd").style.width = `${Math.min(state.workDays / 88 * 100, 100)}%`;
-    document.getElementById("days-3rd-text").innerText = `${state.workDays} / 179`;
-    document.getElementById("progress-3rd").style.width = `${Math.min(state.workDays / 179 * 100, 100)}%`;
+    // 簽證進度邏輯：滿 88 才跑三簽
+    const secondDays = Math.min(state.workDays, 88);
+    const thirdDays = state.workDays > 88 ? Math.min(state.workDays - 88, 179) : 0;
+
+    document.getElementById("days-2nd-text").innerText = `${secondDays} / 88`;
+    document.getElementById("progress-2nd").style.width = `${(secondDays / 88 * 100)}%`;
+    document.getElementById("days-3rd-text").innerText = `${thirdDays} / 179`;
+    document.getElementById("progress-3rd").style.width = `${(thirdDays / 179 * 100)}%`;
     
     document.getElementById("total-hours-display").innerText = (state.weeklyHours || 0).toFixed(1);
     document.getElementById("append-count-display").innerText = state.appendCount || 0;
@@ -128,8 +134,9 @@ function addInvestment() {
     const curr = document.getElementById("stock-curr").value;
     const name = document.getElementById("stock-name").value;
     const cost = parseFloat(document.getElementById("stock-cost").value);
+    const shares = document.getElementById("stock-shares").value;
     if(!name || !cost) return;
-    state.investments.push({ name, curr, cost, shares: document.getElementById("stock-shares").value });
+    state.investments.push({ id: Date.now(), name, curr, cost, shares });
     save(); updateUI();
     alert("投資紀錄成功");
 }
@@ -138,20 +145,84 @@ function addWorkDay() { state.workDays++; state.workLogs.unshift(new Date().toLo
 function undoWorkDay() { if(state.workDays > 0) { state.workDays--; state.workLogs.shift(); save(); updateUI(); } }
 function showWorkLogs() { alert(state.workLogs.slice(0,10).join('\n') || "尚無紀錄"); }
 
-function setType(t) { document.getElementById("trans-type").value = t; document.querySelectorAll("#type-container .type-btn").forEach(b => b.classList.toggle("active", b.dataset.type === t)); }
-function setStockCurr(c) { document.getElementById("stock-curr").value = c; document.querySelectorAll("#stock-currency-container .type-btn").forEach(b => b.classList.toggle("active", b.dataset.curr === c)); }
-function toggleAccountModal() { const m = document.getElementById("account-modal"); m.style.display = m.style.display === "block" ? "none" : "block"; if(m.style.display === "block") renderAccountManage(); }
+// 修正後的切換按鈕邏輯
+function setType(t) { 
+    document.getElementById("trans-type").value = t; 
+    document.querySelectorAll("#type-container .type-btn").forEach(b => b.classList.toggle("active", b.dataset.type === t)); 
+}
+function setStockCurr(c) { 
+    document.getElementById("stock-curr").value = c; 
+    document.querySelectorAll("#stock-currency-container .type-btn").forEach(b => b.classList.toggle("active", b.dataset.curr === c)); 
+}
+
+function toggleAccountModal() { 
+    const m = document.getElementById("account-modal"); 
+    m.style.display = m.style.display === "block" ? "none" : "block"; 
+    if(m.style.display === "block") renderAccountManage(); 
+}
 function addAccountUnit() {
     const name = document.getElementById("new-acc-name").value;
     const curr = document.getElementById("new-acc-curr").value;
-    if(name) { state.accounts.push({ id: 'acc-'+Date.now(), name, curr, balance: 0 }); save(); updateUI(); renderAccountManage(); }
+    if(name) { 
+        state.accounts.push({ id: 'acc-'+Date.now(), name, curr, balance: 0 }); 
+        document.getElementById("new-acc-name").value = "";
+        save(); updateUI(); renderAccountManage(); 
+    }
 }
 function renderAccountManage() {
     const list = document.getElementById("account-manage-list");
     list.innerHTML = state.accounts.map(a => `<div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span class="custom-text">${a.name} (${a.curr})</span><button onclick="deleteAcc('${a.id}')" style="color:red; border:none; background:none; cursor:pointer;">刪除</button></div>`).join('');
 }
-function deleteAcc(id) { state.accounts = state.accounts.filter(a => a.id !== id); save(); updateUI(); renderAccountManage(); }
-function toggleHistoryModal() { const m = document.getElementById("history-modal"); m.style.display = m.style.display === "block" ? "none" : "block"; }
-function toggleStockModal() { const m = document.getElementById("stock-modal"); m.style.display = m.style.display === "block" ? "none" : "block"; }
+function deleteAcc(id) { 
+    if(confirm("刪除帳戶會導致該帳戶餘額消失，確定嗎？")) {
+        state.accounts = state.accounts.filter(a => a.id !== id); 
+        save(); updateUI(); renderAccountManage(); 
+    }
+}
+
+function toggleStockModal() { 
+    const m = document.getElementById("stock-modal"); 
+    m.style.display = m.style.display === "block" ? "none" : "block"; 
+    if(m.style.display === "block") {
+        const list = document.getElementById("stock-detail-list");
+        list.innerHTML = state.investments.length ? state.investments.map((inv, idx) => `
+            <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+                <span class="custom-text">${inv.name} (${inv.curr})</span>
+                <div>
+                    <span class="custom-text">${inv.cost.toLocaleString()}</span>
+                    <button onclick="deleteStock(${inv.id})" style="color:red; border:none; background:none; margin-left:10px;">刪</button>
+                </div>
+            </div>
+        `).join('') : '<p class="custom-text">尚無持倉</p>';
+    }
+}
+function deleteStock(id) {
+    state.investments = state.investments.filter(inv => inv.id !== id);
+    save(); updateUI(); toggleStockModal(); toggleStockModal(); // 刷新
+}
+
+function toggleHistoryModal() { 
+    const m = document.getElementById("history-modal"); 
+    m.style.display = m.style.display === "block" ? "none" : "block"; 
+    if(m.style.display === "block") renderFullHistory();
+}
+function renderFullHistory() {
+    const list = document.getElementById("full-history-list");
+    list.innerHTML = state.transactions.map((t, idx) => `
+        <div class="transaction-item">
+            <span class="custom-text"><b>[${t.accName}]</b> ${t.desc}</span>
+            <div>
+                <span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount.toLocaleString()}</span>
+                <button onclick="deleteTransaction(${idx})" style="color:red; border:none; background:none; margin-left:10px;">刪除</button>
+            </div>
+        </div>
+    `).join('');
+}
+function deleteTransaction(idx) {
+    if(confirm("確定刪除此紀錄？(注意：不會補回帳戶餘額)")) {
+        state.transactions.splice(idx, 1);
+        save(); updateUI(); renderFullHistory();
+    }
+}
 
 init();

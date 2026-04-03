@@ -11,7 +11,7 @@ body { font-family: -apple-system, sans-serif; background: var(--bg-color); marg
 .app-container { max-width: 500px; margin: 0 auto; }
 
 .author-info-center, .footer-contact { text-align: center; }
-.author-info-center p, .footer-contact p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; }
+.author-info-center p, .footer-contact p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; font-family: -apple-system, sans-serif; }
 .custom-text { font-size: 0.75rem !important; color: var(--text-muted) !important; }
 
 .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
@@ -36,13 +36,24 @@ body { font-family: -apple-system, sans-serif; background: var(--bg-color); marg
 .progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--secondary-color); width: 0%; transition: 0.3s; }
 
-/* 簽證按鈕統一樣式 */
-.btn-group-large, .work-btn-sub { display: flex; gap: 10px; }
+/* 按鈕群組布局 */
+.btn-group-half { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+.btn-group-half button { flex: 1; }
+
+/* 簽證按鈕統一樣式 (累加、重置、按錯了、紀錄) */
 .work-btn-large, .sub-btn { 
   padding: 15px; border: none; border-radius: 8px; 
   font-weight: bold; font-size: 0.9rem !important; cursor: pointer; color: white !important;
 }
-.sub-btn { flex: 1; background: #95a5a6; } /* 重置顏色樣式 */
+
+/* 不想上班但沒錢按鈕 (維持 100% 寬度) */
+.work-btn-full {
+  width: 100%; padding: 15px; border: none; border-radius: 8px; 
+  font-weight: bold; font-size: 0.9rem; cursor: pointer; color: white;
+}
+
+/* 按錯了、紀錄 顏色與重置按鈕一致 */
+.sub-btn { background: #95a5a6; } 
 
 .spacer-sm { margin-bottom: 10px; }
 .spacer-md { margin-bottom: 20px; }

@@ -55,10 +55,11 @@
         <section class="card shadow">
           <h2 class="card-h2-title"><i class="fas fa-calendar-check"></i> 簽證天數與薪資計算</h2>
           <div class="progress-row">
-            <div class="progress-info"><span class="custom-text">二簽 (88天)</span><b id="days-2nd-text" class="custom-text">0 / 88</b></div>
+            <div class="progress-info"><span>二簽 (88天)</span><b id="days-2nd-text">0 / 88</b></div>
             <div class="progress-bar"><div class="progress-fill" id="progress-2nd"></div></div>
           </div>
-          <div class="progress-row spacer-md"> <div class="progress-info"><span class="custom-text">三簽 (179天)</span><b id="days-3rd-text" class="custom-text">0 / 179</b></div>
+          <div class="progress-row spacer-md">
+            <div class="progress-info"><span>三簽 (179天)</span><b id="days-3rd-text">0 / 179</b></div>
             <div class="progress-bar"><div class="progress-fill" id="progress-3rd" style="background:#f39c12;"></div></div>
           </div>
           
@@ -68,12 +69,12 @@
           </div>
           
           <div class="btn-group-large mt-10">
-            <button class="work-btn-large" style="flex:1; background:#3498db;" onclick="appendHours()">累加時數</button>
-            <button class="work-btn-large" style="flex:1; background:#95a5a6;" onclick="resetWeeklySalary()">重置累計</button>
+            <button class="work-btn-large" style="background:#3498db;" onclick="appendHours()">累加時數</button>
+            <button class="work-btn-large" style="background:#95a5a6;" onclick="resetWeeklySalary()">重置累計</button>
           </div>
 
           <div class="salary-result-row">
-            <span class="salary-text custom-text">
+            <span class="custom-text">
               累計：<b id="total-hours-display">0</b> hr 
               薪資：<b id="weekly-salary-display">0.00</b> 
               (已累加 <b id="append-count-display">0</b> 次)
@@ -81,10 +82,10 @@
           </div>
 
           <div class="work-action-group">
-            <button class="work-btn-large" onclick="addWorkDay()">不想上班但沒錢...</button>
+            <button class="work-btn-large" style="background:#27ae60;" onclick="addWorkDay()">不想上班但沒錢...</button>
             <div class="work-btn-sub">
-              <button class="sub-btn custom-text" onclick="undoWorkDay()">按錯ㄌ</button>
-              <button class="sub-btn custom-text" onclick="showWorkLogs()">紀錄</button>
+              <button class="sub-btn" onclick="undoWorkDay()">按錯ㄌ</button>
+              <button class="sub-btn" onclick="showWorkLogs()">紀錄</button>
             </div>
           </div>
         </section>
@@ -112,9 +113,11 @@
             <button class="type-btn btn-income" data-type="income" onclick="setType('income')">收入</button>
           </div>
           <input type="hidden" id="trans-type" value="expense" />
+          
           <div class="date-input-container">
             <input type="date" id="trans-date" class="styled-input">
           </div>
+
           <div class="input-flex mt-10">
             <input type="number" id="trans-amount" placeholder="金額" style="flex:1;">
             <input type="text" id="trans-desc" placeholder="項目" style="flex:2;">
@@ -155,18 +158,20 @@
         <div id="account-manage-list" class="mt-10"></div>
       </div></div>
 
+      <div id="edit-acc-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('edit-acc-modal')">&times;</span>
+        <h3>編輯單位名稱</h3>
+        <input type="hidden" id="edit-acc-id">
+        <input type="text" id="edit-acc-name" class="spacer-sm" placeholder="輸入新名稱">
+        <button class="btn-primary-action" onclick="updateAccountName()">儲存修改</button>
+      </div></div>
+
       <div id="stock-modal" class="modal"><div class="modal-content">
         <span class="close-x" onclick="toggleModal('stock-modal')">&times;</span>
         <h3>持倉細節</h3>
         <div id="stock-detail-list"></div>
       </div></div>
 
-      <div id="history-modal" class="modal"><div class="modal-content">
-        <span class="close-x" onclick="toggleModal('history-modal')">&times;</span>
-        <h3>歷史紀錄管理</h3>
-        <div id="full-history-list" style="max-height:350px; overflow-y:auto;"></div>
-      </div></div>
-      
       <div id="edit-stock-modal" class="modal"><div class="modal-content">
         <span class="close-x" onclick="toggleModal('edit-stock-modal')">&times;</span>
         <h3>編輯投資</h3>
@@ -178,6 +183,25 @@
         <label class="custom-text">投入總金額</label>
         <input type="number" id="edit-stock-cost" class="spacer-sm">
         <button class="btn-primary-action" onclick="updateStock()">確認修改</button>
+      </div></div>
+
+      <div id="history-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('history-modal')">&times;</span>
+        <h3>歷史紀錄編輯</h3>
+        <div id="full-history-list" style="max-height:350px; overflow-y:auto;"></div>
+      </div></div>
+
+      <div id="edit-trans-modal" class="modal"><div class="modal-content">
+        <span class="close-x" onclick="toggleModal('edit-trans-modal')">&times;</span>
+        <h3>編輯紀錄詳情</h3>
+        <input type="hidden" id="edit-t-idx">
+        <label class="custom-text">日期</label>
+        <input type="date" id="edit-t-date" class="spacer-sm">
+        <label class="custom-text">項目</label>
+        <input type="text" id="edit-t-desc" class="spacer-sm">
+        <label class="custom-text">金額</label>
+        <input type="number" id="edit-t-amount" class="spacer-sm">
+        <button class="btn-primary-action" onclick="updateTransaction()">確認修改</button>
       </div></div>
 
     </div>

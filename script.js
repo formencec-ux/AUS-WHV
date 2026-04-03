@@ -1,5 +1,8 @@
 let state = {
-    balance: { AUD: 0, TWD: 0, USD: 0 },
+    accounts: [
+        { id: 'default-aud', name: 'AUD 現金', curr: 'AUD', balance: 0 },
+        { id: 'default-twd', name: 'TWD 銀行', curr: 'TWD', balance: 0 }
+    ],
     investments: [],
     workDays: 0,
     workLogs: [],
@@ -10,27 +13,21 @@ let state = {
 };
 
 function init() {
-    const saved = localStorage.getItem("aus_wh_state");
+    const saved = localStorage.getItem("aus_wh_state_pro");
     if (saved) {
-        const parsed = JSON.parse(saved);
-        state = { ...state, ...parsed };
+        state = { ...state, ...JSON.parse(saved) };
     }
     
-    // 設定預設日期為今天
-    const now = new Date();
-    document.getElementById('trans-date').value = now.toISOString().split('T')[0];
-    
-    // 回填時薪時數
-    document.getElementById("work-hours").value = state.weeklyHours || "";
+    document.getElementById('trans-date').value = new Date().toISOString().split('T')[0];
     document.getElementById("work-wage").value = state.weeklyWage || "";
-
+    
     updateUI();
     fetchRates();
     setInterval(fetchRates, 600000);
 }
 
 function save() { 
-    localStorage.setItem("aus_wh_state", JSON.stringify(state)); 
+    localStorage.setItem("aus_wh_state_pro", JSON.stringify(state)); 
 }
 
 async function fetchRates() {
@@ -46,299 +43,209 @@ async function fetchRates() {
     } catch (e) { console.log("匯率更新失敗"); }
 }
 
-function setType(type) {
-    document.getElementById("trans-type").value = type;
-    document.querySelectorAll("#type-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.type === type));
+// 單位管理
+function toggleAccountModal() {
+    const m = document.getElementById("account-modal");
+    m.style.display = m.style.display === "block" ? "none" : "block";
+    renderAccountManage();
 }
 
-function setCurrency(currency) {
-    document.getElementById("trans-currency").value = currency;
-    document.querySelectorAll("#currency-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.currency === currency));
+function addAccount() {
+    const name = document.getElementById("new-acc-name").value.trim();
+    const curr = document.getElementById("new-acc-curr").value;
+    if(!name) return;
+    state.accounts.push({ id: Date.now().toString(), name, curr, balance: 0 });
+    document.getElementById("new-acc-name").value = "";
+    save(); updateUI(); renderAccountManage();
 }
 
-function setStockCurr(curr) {
-    document.getElementById("stock-curr").value = curr;
-    document.querySelectorAll("#stock-currency-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.curr === curr));
+function deleteAccount(id) {
+    if(confirm("確定刪除此單位？該單位的餘額將會消失！")) {
+        state.accounts = state.accounts.filter(a => a.id !== id);
+        save(); updateUI(); renderAccountManage();
+    }
 }
 
-// 薪資計算
-function calculateWeeklySalary() {
-    const hours = parseFloat(document.getElementById("work-hours").value) || 0;
-    const wage = parseFloat(document.getElementById("work-wage").value) || 0;
-    state.weeklyHours = hours;
-    state.weeklyWage = wage;
-    document.getElementById("weekly-salary-display").innerText = (hours * wage).toFixed(2);
+function renderAccountManage() {
+    const list = document.getElementById("account-manage-list");
+    list.innerHTML = state.accounts.map(a => `
+        <div class="history-edit-item">
+            <span>${a.name} (${a.curr})</span>
+            <button onclick="deleteAccount('${a.id}')" style="color:red">刪除</button>
+        </div>
+    `).join('');
+}
+
+// 薪資自動累加
+function saveSalaryBase() {
+    state.weeklyWage = parseFloat(document.getElementById("work-wage").value) || 0;
     save();
 }
 
-function resetWeeklySalary() {
-    if (confirm("⚠️ 確定要重置薪資計算時數嗎？")) {
-        setTimeout(() => {
-            if (confirm("🔥 第二次確認：所有當週輸入的時數與時薪將會歸零喔！")) {
-                state.weeklyHours = 0;
-                state.weeklyWage = 0;
-                document.getElementById("work-hours").value = "";
-                document.getElementById("work-wage").value = "";
-                document.getElementById("weekly-salary-display").innerText = "0.00";
-                save();
-                alert("已成功重置！");
-            }
-        }, 100);
-    }
-}
-
-function updatePreview() {
-    const fromCurr = document.getElementById("ex-from").value;
-    const toCurr = document.getElementById("ex-to").value;
-    const amount = parseFloat(document.getElementById("ex-amount").value);
-    const previewEl = document.getElementById("ex-preview");
-    if (isNaN(amount) || amount <= 0) { previewEl.innerText = ""; return; }
-    if (fromCurr === toCurr) { previewEl.innerText = "來源與目標幣別相同"; return; }
-    let rate;
-    if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
-    else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
-    else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
-    const result = (amount * rate).toFixed(toCurr === "TWD" ? 0 : 2);
-    previewEl.innerText = `預計轉換後：${Number(result).toLocaleString()} ${toCurr}`;
-}
-
-function executeExchange() {
-    const fromCurr = document.getElementById("ex-from").value;
-    const toCurr = document.getElementById("ex-to").value;
-    const amount = parseFloat(document.getElementById("ex-amount").value);
-    if (isNaN(amount) || amount <= 0 || state.balance[fromCurr] < amount || fromCurr === toCurr) {
-        alert("請確認餘額足夠且幣別不同"); return;
-    }
-    let rate;
-    if (fromCurr === "AUD") rate = state.rates[`AUD_${toCurr}`];
-    else if (toCurr === "AUD") rate = 1 / state.rates[`AUD_${fromCurr}`];
-    else rate = (1 / state.rates[`AUD_${fromCurr}`]) * state.rates[`AUD_${toCurr}`];
-    state.balance[fromCurr] -= amount;
-    state.balance[toCurr] += amount * rate;
-    state.transactions.unshift({ 
-        id: Date.now(), 
-        type: 'expense', 
-        desc: `轉換: ${fromCurr}→${toCurr}`, 
-        amount: amount, 
-        currency: fromCurr, 
-        date: new Date().toLocaleDateString() 
-    });
-    document.getElementById("ex-amount").value = "";
-    document.getElementById("ex-preview").innerText = "";
+function appendHours() {
+    const input = document.getElementById("work-hours-input");
+    const val = parseFloat(input.value) || 0;
+    if(val <= 0) return;
+    state.weeklyHours = (state.weeklyHours || 0) + val;
+    input.value = "";
     save(); updateUI();
+}
+
+function resetWeeklySalary() {
+    if (confirm("確定要重置所有累計時數嗎？")) {
+        state.weeklyHours = 0;
+        save(); updateUI();
+    }
+}
+
+// 收支紀錄
+function setType(type) {
+    document.querySelectorAll("#type-container .type-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.type === type));
 }
 
 function addTransaction() {
-    const type = document.getElementById("trans-type").value;
-    const desc = document.getElementById("trans-desc").value.trim();
+    const type = document.querySelector("#type-container .active").dataset.type;
+    const accId = document.getElementById("trans-account").value;
     const amount = parseFloat(document.getElementById("trans-amount").value);
-    const currency = document.getElementById("trans-currency").value;
-    const dateInput = document.getElementById("trans-date").value;
-    const dateStr = dateInput ? new Date(dateInput).toLocaleDateString() : new Date().toLocaleDateString();
+    const desc = document.getElementById("trans-desc").value.trim();
+    const date = document.getElementById("trans-date").value;
 
-    if (!desc || isNaN(amount)) return;
-    state.transactions.unshift({ id: Date.now(), type, desc, amount, currency, date: dateStr });
-    state.balance[currency] += type === "income" ? amount : -amount;
-    document.getElementById("trans-desc").value = "";
+    if (!accId || isNaN(amount) || !desc) { alert("請填寫完整資訊"); return; }
+
+    const acc = state.accounts.find(a => a.id === accId);
+    state.transactions.unshift({
+        id: Date.now(),
+        type,
+        accId,
+        accName: acc.name,
+        amount,
+        currency: acc.curr,
+        desc,
+        date: date.replace(/-/g, '/')
+    });
+
+    acc.balance += (type === 'income' ? amount : -amount);
     document.getElementById("trans-amount").value = "";
+    document.getElementById("trans-desc").value = "";
     save(); updateUI();
 }
 
-function addInvestment() {
-    const name = document.getElementById("stock-name").value.trim();
-    const shares = parseFloat(document.getElementById("stock-shares").value);
-    const cost = parseFloat(document.getElementById("stock-cost").value);
-    const curr = document.getElementById("stock-curr").value;
-    if (!name || isNaN(shares) || isNaN(cost)) return;
-    state.investments.unshift({ id: Date.now(), name, shares, cost, curr, date: new Date().toLocaleDateString() });
-    state.balance[curr] -= cost;
-    document.getElementById("stock-name").value = "";
-    document.getElementById("stock-shares").value = "";
-    document.getElementById("stock-cost").value = "";
-    save(); updateUI();
+function updateUI() {
+    // 渲染帳戶列表
+    const accDisplay = document.getElementById("account-display-list");
+    accDisplay.innerHTML = state.accounts.map(a => `
+        <div class="currency-row">
+            <span class="label">${a.name}</span>
+            <span class="value">${a.curr} ${a.balance.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+        </div>
+    `).join('');
+
+    // 渲染下拉選單
+    const accSelect = document.getElementById("trans-account");
+    accSelect.innerHTML = state.accounts.map(a => `<option value="${a.id}">${a.name} (${a.curr})</option>`).join('');
+
+    // 總資產計算
+    let totalAUD = 0, totalTWD = 0, totalUSD = 0;
+    state.accounts.forEach(a => {
+        if(a.curr === 'AUD') totalAUD += a.balance;
+        if(a.curr === 'TWD') totalTWD += a.balance;
+        if(a.curr === 'USD') totalUSD += a.balance;
+    });
+
+    const r = state.rates;
+    const finalAUD = totalAUD + (totalTWD / r.AUD_TWD) + (totalUSD / r.AUD_USD);
+    const finalTWD = (totalAUD * r.AUD_TWD) + totalTWD + (totalUSD * r.USD_TWD);
+    const finalUSD = (totalAUD * r.AUD_USD) + (totalTWD / r.USD_TWD) + totalUSD;
+
+    document.getElementById("eval-aud").innerText = `$ ${finalAUD.toFixed(2)}`;
+    document.getElementById("eval-twd").innerText = `$ ${Math.round(finalTWD).toLocaleString()}`;
+    document.getElementById("eval-usd").innerText = `$ ${finalUSD.toFixed(2)}`;
+
+    document.getElementById("exchange-info").innerHTML = `
+        <div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>
+        <div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div>`;
+
+    // 薪資顯示
+    document.getElementById("total-hours-display").innerText = (state.weeklyHours || 0).toFixed(1);
+    document.getElementById("weekly-salary-display").innerText = ((state.weeklyHours || 0) * (state.weeklyWage || 0)).toFixed(2);
+
+    // 簽證進度
+    const wd = state.workDays || 0;
+    document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
+    document.getElementById("days-2nd-text").innerText = `${wd} / 88`;
+
+    // 簡版紀錄
+    const list = document.getElementById("transaction-list");
+    list.innerHTML = state.transactions.slice(0, 5).map(t => `
+        <li class="transaction-item">
+            <span><small>${t.date}</small> [${t.accName}] ${t.desc}</span>
+            <span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount}</span>
+        </li>
+    `).join('');
 }
 
-function deleteTransaction(id) {
-    if (confirm("確定要刪除這筆紀錄嗎？")) {
-        setTimeout(() => {
-            if (confirm("再次確認：刪除後資產餘額會自動回推，確定執行？")) {
-                const idx = state.transactions.findIndex(t => t.id === id);
-                if (idx !== -1) {
-                    const t = state.transactions[idx];
-                    state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
-                    state.transactions.splice(idx, 1);
-                } else {
-                    const invIdx = state.investments.findIndex(i => i.id === id);
-                    if (invIdx !== -1) {
-                        const i = state.investments[invIdx];
-                        state.balance[i.curr] += i.cost;
-                        state.investments.splice(invIdx, 1);
-                    }
-                }
-                save(); updateUI();
-                if(document.getElementById("history-modal").style.display === "block") renderHistoryDetails();
-            }
-        }, 100);
-    }
-}
-
-function editTransaction(id) {
-    const t = state.transactions.find(item => item.id === id);
-    if(!t) return;
-
-    const newDesc = prompt("修改項目名稱:", t.desc);
-    const newAmount = parseFloat(prompt("修改金額:", t.amount));
-    const newDate = prompt("修改日期 (格式 YYYY/MM/DD):", t.date);
-
-    if (newDesc !== null && !isNaN(newAmount) && newDate !== null) {
-        state.balance[t.currency] -= t.type === "income" ? t.amount : -t.amount;
-        t.desc = newDesc;
-        t.amount = newAmount;
-        t.date = newDate;
-        state.balance[t.currency] += t.type === "income" ? t.amount : -t.amount;
-        save(); updateUI(); renderHistoryDetails();
-    }
-}
-
-function toggleStockModal() {
-    const modal = document.getElementById("stock-modal");
-    modal.style.display = modal.style.display === "block" ? "none" : "block";
-    if (modal.style.display === "block") renderStockDetails();
-}
-
+// 歷史紀錄展開編輯
 function toggleHistoryModal() {
-    const modal = document.getElementById("history-modal");
-    modal.style.display = modal.style.display === "block" ? "none" : "block";
-    if (modal.style.display === "block") renderHistoryDetails();
-}
-
-function renderStockDetails() {
-    const container = document.getElementById("stock-detail-list");
-    if (state.investments.length === 0) { container.innerHTML = "<p>尚未有投資</p>"; return; }
-    const stats = state.investments.reduce((acc, inv) => {
-        if (!acc[inv.name]) acc[inv.name] = { totalShares: 0, totalCost: 0, curr: inv.curr, logs: [] };
-        acc[inv.name].totalShares += inv.shares;
-        acc[inv.name].totalCost += inv.cost;
-        acc[inv.name].logs.push(`${inv.date}: ${inv.shares}股 / $${inv.cost.toFixed(2)}`);
-        return acc;
-    }, {});
-    let html = "";
-    for (const name in stats) {
-        const s = stats[name];
-        html += `<div class="stock-detail-card"><strong>${name} (${s.curr})</strong><br>持有: ${s.totalShares}股 | 均價: ${(s.totalCost/s.totalShares).toFixed(2)}<br><small>${s.logs.join('<br>')}</small></div>`;
-    }
-    container.innerHTML = html;
+    const m = document.getElementById("history-modal");
+    m.style.display = m.style.display === "block" ? "none" : "block";
+    if(m.style.display === "block") renderHistoryDetails();
 }
 
 function renderHistoryDetails() {
     const container = document.getElementById("full-history-list");
-    container.innerHTML = "";
-    state.transactions.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "history-edit-item";
-        div.innerHTML = `
-            <div class="info">
-                <small>${t.date}</small><br>
-                <b>${t.desc}</b>: <span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount} ${t.currency}</span>
+    container.innerHTML = state.transactions.map(t => `
+        <div class="history-edit-item">
+            <div style="flex:1">
+                <small>${t.date}</small> <b>${t.desc}</b><br>
+                <span class="${t.type}">${t.accName}: ${t.amount} ${t.currency}</span>
             </div>
-            <div class="actions">
-                <button onclick="editTransaction(${t.id})">修改</button>
-                <button onclick="deleteTransaction(${t.id})" style="color:red">刪除</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
+            <button onclick="editTransaction(${t.id})">修改</button>
+            <button onclick="deleteTransaction(${t.id})" style="color:red">刪除</button>
+        </div>
+    `).join('');
 }
 
-function addWorkDay() {
-    state.workDays = (state.workDays || 0) + 1;
-    const now = new Date();
-    const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-    state.workLogs.unshift(timeStr);
-    save(); 
-    updateUI();
-}
-
-function undoWorkDay() {
-    if (state.workDays > 0) { 
-        state.workDays--; 
-        state.workLogs.shift(); 
-        save(); 
-        updateUI(); 
+function editTransaction(id) {
+    const t = state.transactions.find(x => x.id === id);
+    const newDesc = prompt("項目名稱:", t.desc);
+    const newAmount = parseFloat(prompt("金額:", t.amount));
+    if(newDesc && !isNaN(newAmount)) {
+        const acc = state.accounts.find(a => a.id === t.accId);
+        // 回推舊金額
+        acc.balance -= (t.type === 'income' ? t.amount : -t.amount);
+        t.desc = newDesc;
+        t.amount = newAmount;
+        // 套用新金額
+        acc.balance += (t.type === 'income' ? t.amount : -t.amount);
+        save(); updateUI(); renderHistoryDetails();
     }
 }
 
-function showWorkLogs() { alert("打卡紀錄:\n" + state.workLogs.join('\n')); }
-
-function resetAssets() { 
-    if (confirm("⚠️ 嚴重警告：確定要清空所有資料嗎？")) { 
-        setTimeout(() => {
-            if (confirm("🚨 最後警告：此操作無法復原，所有資產與紀錄將消失！")) {
-                localStorage.removeItem("aus_wh_state");
-                alert("資料已完全清除。");
-                location.reload(); 
-            }
-        }, 100);
-    } 
+function deleteTransaction(id) {
+    if(confirm("確定刪除？餘額將自動回推。")) {
+        const idx = state.transactions.findIndex(x => x.id === id);
+        const t = state.transactions[idx];
+        const acc = state.accounts.find(a => a.id === t.accId);
+        if(acc) acc.balance -= (t.type === 'income' ? t.amount : -t.amount);
+        state.transactions.splice(idx, 1);
+        save(); updateUI(); renderHistoryDetails();
+    }
 }
 
-function updateUI() {
-    const investSum = state.investments.reduce((acc, inv) => { acc[inv.curr] += inv.cost; return acc; }, { AUD: 0, TWD: 0, USD: 0 });
-    const r = state.rates;
-    
-    // 餘額顯示
-    document.getElementById("total-aud").innerText = `$ ${state.balance.AUD.toFixed(2)}`;
-    document.getElementById("total-twd").innerText = `$ ${state.balance.TWD.toLocaleString()}`;
-    document.getElementById("total-usd").innerText = `$ ${state.balance.USD.toFixed(2)}`;
-    
-    // 投資顯示
-    document.getElementById("invest-aud").innerText = investSum.AUD.toFixed(2);
-    document.getElementById("invest-twd").innerText = investSum.TWD.toLocaleString();
-    document.getElementById("invest-usd").innerText = investSum.USD.toFixed(2);
-    
-    // 匯率卡片
-    document.getElementById("exchange-info").innerHTML = `
-        <div class="rate-badge">1 AUD=${r.AUD_TWD.toFixed(2)}TWD</div>
-        <div class="rate-badge">1 AUD=${r.AUD_USD.toFixed(3)}USD</div>
-        <div class="rate-badge">1 USD=${r.USD_TWD.toFixed(2)}TWD</div>`;
-    
-    // 總資產換算 (加上投資額)
-    const totalInAUD = (state.balance.AUD + investSum.AUD) + ((state.balance.TWD + investSum.TWD) / r.AUD_TWD) + ((state.balance.USD + investSum.USD) / r.AUD_USD);
-    const totalInTWD = ((state.balance.AUD + investSum.AUD) * r.AUD_TWD) + (state.balance.TWD + investSum.TWD) + ((state.balance.USD + investSum.USD) * r.USD_TWD);
-    const totalInUSD = ((state.balance.AUD + investSum.AUD) * r.AUD_USD) + ((state.balance.TWD + investSum.TWD) / r.USD_TWD) + (state.balance.USD + investSum.USD);
-    
-    document.getElementById("eval-aud").innerText = `$ ${totalInAUD.toFixed(2)}`;
-    document.getElementById("eval-twd").innerText = `$ ${Math.round(totalInTWD).toLocaleString()}`;
-    document.getElementById("eval-usd").innerText = `$ ${totalInUSD.toFixed(2)}`;
-    
-    // 簽證進度
-    const wd = state.workDays || 0;
-    document.getElementById("progress-2nd").style.width = `${Math.min(wd/88*100, 100)}%`;
-    document.getElementById("days-2nd-text").innerText = `${Math.min(wd, 88)} / 88`;
-    document.getElementById("progress-3rd").style.width = `${Math.min(Math.max(0,wd-88)/179*100, 100)}%`;
-    document.getElementById("days-3rd-text").innerText = `${Math.max(0, wd - 88)} / 179`;
-
-    // 薪資同步
-    document.getElementById("weekly-salary-display").innerText = (state.weeklyHours * state.weeklyWage).toFixed(2);
-
-    // 交易清單
-    const list = document.getElementById("transaction-list");
-    list.innerHTML = "";
-    const combined = [
-        ...state.transactions.map(t=>({...t, icon:'wallet', val: t.amount})), 
-        ...state.investments.map(i=>({...i, type:'expense', desc:`買入 ${i.name}`, icon:'chart-line', val: i.cost, currency: i.curr}))
-    ].sort((a,b)=>b.id-a.id).slice(0,10);
-    
-    combined.forEach(t => {
-        const li = document.createElement("li"); 
-        li.className = "transaction-item";
-        li.innerHTML = `
-            <span><i class="fas fa-${t.icon}"></i> ${t.date} ${t.desc}</span>
-            <div>
-                <span class="${t.type}">${t.type==='income'?'+':'-'}${t.val.toLocaleString(undefined, {minimumFractionDigits: 2})} ${t.currency}</span>
-                <i class="fas fa-trash delete-icon" onclick="deleteTransaction(${t.id})"></i>
-            </div>`;
-        list.appendChild(li);
-    });
+// 打卡
+function addWorkDay() {
+    state.workDays = (state.workDays || 0) + 1;
+    state.workLogs.unshift(new Date().toLocaleString());
+    save(); updateUI();
 }
+function undoWorkDay() { if(state.workDays > 0){ state.workDays--; state.workLogs.shift(); save(); updateUI(); }}
+function showWorkLogs() { alert(state.workLogs.join('\n')); }
+
+function resetAssets() {
+    if(confirm("確定清空所有資料嗎？")) {
+        localStorage.removeItem("aus_wh_state_pro");
+        location.reload();
+    }
+}
+
 init();

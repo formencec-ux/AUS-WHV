@@ -193,14 +193,29 @@
         <span class="close-x" onclick="toggleModal('edit-trans-modal')">&times;</span>
         <h3>編輯紀錄詳情</h3>
         <input type="hidden" id="edit-t-idx">
+        <input type="hidden" id="edit-t-type">
+        
+        <label class="custom-text">類型</label>
+        <div id="edit-type-container" class="type-switcher spacer-sm">
+          <button class="type-btn btn-expense" id="edit-btn-expense" onclick="setEditType('expense')">支出</button>
+          <button class="type-btn btn-income" id="edit-btn-income" onclick="setEditType('income')">收入</button>
+        </div>
+
         <label class="custom-text">日期</label>
         <input type="date" id="edit-t-date" class="spacer-sm">
+
+        <label class="custom-text">帳戶單位</label>
+        <select id="edit-t-account" class="spacer-sm"></select>
+
         <label class="custom-text">項目</label>
         <input type="text" id="edit-t-desc" class="spacer-sm">
+        
         <label class="custom-text">金額</label>
         <input type="number" id="edit-t-amount" class="spacer-sm">
+        
         <button class="btn-primary-action" onclick="updateTransaction()">確認修改</button>
       </div></div>
+
     </div>
     <script src="script.js"></script>
   </body>

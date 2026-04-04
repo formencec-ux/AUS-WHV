@@ -16,7 +16,7 @@ let state = {
 const DEFAULT_STATE = JSON.parse(JSON.stringify(state));
 
 function init() {
-    const saved = localStorage.getItem("aus_wh_final_v3");
+    const saved = localStorage.getItem("aus_wh_final_v4");
     if (saved) state = JSON.parse(saved);
     const dateEl = document.getElementById('trans-date');
     if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
@@ -25,7 +25,7 @@ function init() {
     updateUI();
 }
 
-function save() { localStorage.setItem("aus_wh_final_v3", JSON.stringify(state)); }
+function save() { localStorage.setItem("aus_wh_final_v4", JSON.stringify(state)); }
 
 async function fetchRates() {
     try {
@@ -50,7 +50,10 @@ function updateUI() {
     `).join('');
 
     const accSelect = document.getElementById("trans-account-select");
-    accSelect.innerHTML = state.accounts.map(a => `<option value="${a.id}">${a.name} (${a.curr})</option>`).join('');
+    const editAccSelect = document.getElementById("edit-t-account");
+    const options = state.accounts.map(a => `<option value="${a.id}">${a.name} (${a.curr})</option>`).join('');
+    accSelect.innerHTML = options;
+    if (editAccSelect) editAccSelect.innerHTML = options;
 
     const investSum = state.investments.reduce((acc, inv) => { 
         if(acc.hasOwnProperty(inv.curr)) acc[inv.curr] += parseFloat(inv.cost); 
@@ -96,7 +99,7 @@ function doubleConfirmReset(type) {
         if (confirm("資料即將全部刪除")) {
             if (type === 'all') {
                 state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                localStorage.removeItem("aus_wh_final_v3");
+                localStorage.removeItem("aus_wh_final_v4");
             } else if (type === 'investments') {
                 state.investments = [];
             } else if (type === 'transactions') {
@@ -129,21 +132,44 @@ function openEditTrans(idx) {
     document.getElementById("edit-t-date").value = t.date || "";
     document.getElementById("edit-t-desc").value = t.desc;
     document.getElementById("edit-t-amount").value = t.amount;
+    document.getElementById("edit-t-account").value = t.accId;
+    setEditType(t.type); // 初始化支出收入按鈕狀態
     toggleModal('edit-trans-modal');
+}
+
+function setEditType(type) {
+    document.getElementById("edit-t-type").value = type;
+    document.getElementById("edit-btn-expense").classList.toggle("active", type === 'expense');
+    document.getElementById("edit-btn-income").classList.toggle("active", type === 'income');
 }
 
 function updateTransaction() {
     const idx = document.getElementById("edit-t-idx").value;
     const t = state.transactions[idx];
-    const acc = state.accounts.find(a => a.id === t.accId);
+    const newType = document.getElementById("edit-t-type").value;
+    const newAccId = document.getElementById("edit-t-account").value;
     const newAmount = parseFloat(document.getElementById("edit-t-amount").value);
-    if (acc) {
-        acc.balance += (t.type === 'income' ? -t.amount : t.amount);
-        acc.balance += (t.type === 'income' ? newAmount : -newAmount);
+
+    // 1. 先還原舊帳戶金額
+    const oldAcc = state.accounts.find(a => a.id === t.accId);
+    if (oldAcc) {
+        oldAcc.balance += (t.type === 'income' ? -t.amount : t.amount);
     }
+
+    // 2. 套用新資料到交易紀錄
+    const newAcc = state.accounts.find(a => a.id === newAccId);
+    t.type = newType;
+    t.accId = newAccId;
+    t.accName = newAcc ? newAcc.name : "未知帳戶";
     t.date = document.getElementById("edit-t-date").value;
     t.desc = document.getElementById("edit-t-desc").value;
     t.amount = newAmount;
+
+    // 3. 更新新帳戶金額
+    if (newAcc) {
+        newAcc.balance += (newType === 'income' ? newAmount : -newAmount);
+    }
+
     save(); updateUI(); toggleModal('edit-trans-modal'); renderFullHistory();
 }
 
@@ -236,7 +262,7 @@ function renderFullHistory() {
     list.innerHTML = state.transactions.map((t, idx) => `
         <div class="transaction-item">
             <div style="flex:2;"><small class="custom-text">${t.date || ''}</small><br><span class="custom-text"><b>[${t.accName}]</b> ${t.desc}</span></div>
-            <div style="flex:1; text-align:right;"><span class="${t.type}">${t.type==='income'?'+':'-'}${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span><br><button onclick="openEditTrans(${idx})" style="color:blue; border:none; background:none; font-size:0.7rem;">編</button><button onclick="deleteTransaction(${idx})" style="color:red; border:none; background:none; font-size:0.7rem; margin-left:5px;">刪</button></div>
+            <div style="flex:1; text-align:right;"><span class="${t.type}">${t.type==='income'?'+':'-} ${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span><br><button onclick="openEditTrans(${idx})" style="color:blue; border:none; background:none; font-size:0.7rem;">編</button><button onclick="deleteTransaction(${idx})" style="color:red; border:none; background:none; font-size:0.7rem; margin-left:5px;">刪</button></div>
         </div>
     `).join('');
 }

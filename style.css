@@ -11,7 +11,7 @@ body { font-family: -apple-system, sans-serif; background: var(--bg-color); marg
 .app-container { max-width: 500px; margin: 0 auto; }
 
 .author-info-center, .footer-contact { text-align: center; }
-.author-info-center p, .footer-contact p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; font-family: -apple-system, sans-serif; }
+.author-info-center p, .footer-contact p { font-size: 0.75rem !important; color: var(--text-muted) !important; margin: 4px 0; }
 .custom-text { font-size: 0.75rem !important; color: var(--text-muted) !important; }
 
 .card { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
@@ -36,38 +36,37 @@ body { font-family: -apple-system, sans-serif; background: var(--bg-color); marg
 .progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
 .progress-fill { height: 100%; background: var(--secondary-color); width: 0%; transition: 0.3s; }
 
-/* 按鈕群組布局 */
+/* 按鈕群組 */
 .btn-group-half { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
 .btn-group-half button { flex: 1; }
-
-/* 簽證按鈕統一樣式 (累加、重置、按錯了、紀錄) */
 .work-btn-large, .sub-btn { 
   padding: 15px; border: none; border-radius: 8px; 
   font-weight: bold; font-size: 0.9rem !important; cursor: pointer; color: white !important;
 }
-
-/* 不想上班但沒錢按鈕 (維持 100% 寬度) */
-.work-btn-full {
-  width: 100%; padding: 15px; border: none; border-radius: 8px; 
-  font-weight: bold; font-size: 0.9rem; cursor: pointer; color: white;
-}
-
-/* 按錯了、紀錄 顏色與重置按鈕一致 */
 .sub-btn { background: #95a5a6; } 
+.work-btn-full { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; color: white; margin-bottom: 10px; }
 
 .spacer-sm { margin-bottom: 10px; }
 .spacer-md { margin-bottom: 20px; }
 .mt-10 { margin-top: 10px; }
 
-/* 支出收入配色 */
-.type-switcher { display: flex; gap: 5px; }
+/* 支出收入切換 */
+.type-switcher { display: flex; gap: 5px; width: 100%; box-sizing: border-box; }
 .type-btn { flex: 1; padding: 12px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
 .btn-expense.active { background: var(--expense-color) !important; color: white !important; }
 .btn-income.active { background: var(--income-color) !important; color: white !important; }
 .type-btn.active { background: var(--primary-color); color: white; }
 
-input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-.input-flex { display: flex; gap: 8px; }
+/* 輸入框 & 下拉選單修正 */
+input, select { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    box-sizing: border-box; /* 關鍵：確保內距不撐開寬度 */
+    font-size: 0.9rem;
+}
+.input-flex { display: flex; gap: 8px; width: 100%; }
 
 .btn-primary-action { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .mini-btn { background: #eee; color: var(--primary-color); border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
@@ -77,7 +76,18 @@ input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radiu
 .income { color: var(--income-color); font-weight: bold; }
 .expense { color: var(--expense-color); font-weight: bold; }
 
-/* Modal */
+/* Modal 樣式修正 */
 .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; }
-.modal-content { background:#fff; margin:15% auto; padding:25px; width:80%; border-radius:15px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.modal-content { 
+    background:#fff; 
+    margin:10% auto; 
+    padding:20px; 
+    width:85%; 
+    max-width: 400px;
+    border-radius:15px; 
+    position: relative; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    box-sizing: border-box; /* 確保內容不超出 */
+}
 .close-x { position: absolute; right: 15px; top: 10px; font-size: 24px; cursor: pointer; color: #999; }
+.modal-content h3 { margin-top: 0; font-size: 1.1rem; color: var(--primary-color); }
